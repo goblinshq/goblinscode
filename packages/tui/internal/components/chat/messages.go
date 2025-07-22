@@ -180,7 +180,7 @@ func (m *messagesComponent) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case opencode.EventListResponseEventSessionUpdated:
 		if msg.Properties.Info.ID == m.app.Session.ID {
-			m.header = m.renderHeader()
+			cmds = append(cmds, m.renderView())
 		}
 	case opencode.EventListResponseEventMessageUpdated:
 		if msg.Properties.Info.SessionID == m.app.Session.ID {
