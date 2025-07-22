@@ -534,6 +534,7 @@ export namespace Session {
       msgs = preserve
       for (const msg of remove) {
         await Storage.remove(`session/message/${input.sessionID}/${msg.info.id}`)
+        await Bus.publish(MessageV2.Event.Removed, { sessionID: input.sessionID, messageID: msg.info.id })
       }
       const last = preserve.at(-1)
       if (session.revert.partID && last) {
@@ -542,6 +543,10 @@ export namespace Session {
         last.parts = preserveParts
         for (const part of removeParts) {
           await Storage.remove(`session/part/${input.sessionID}/${last.info.id}/${part.id}`)
+          await Bus.publish(MessageV2.Event.PartRemoved, {
+            messageID: last.info.id,
+            partID: part.id,
+          })
         }
       }
     }
