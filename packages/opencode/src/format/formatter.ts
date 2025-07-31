@@ -1,7 +1,6 @@
 import { App } from "../app/app"
 import { BunProc } from "../bun"
 import { Filesystem } from "../util/filesystem"
-import path from "path"
 
 export interface Info {
   name: string
