@@ -705,6 +705,10 @@ export namespace Session {
               parts: userParts,
             },
           ]),
+          // When dealing with huge blocks of context sometimes the llm will lose sight of
+          // parts of system prompt, you can usually get around this by just adding an additional
+          // reference after large context block that references instructions from system prompt
+          // and llm will "remember" it needs to do X or Y
           ...MessageV2.toModelMessage([
             {
               info: {
