@@ -25,6 +25,7 @@ export default function Page() {
   const [activeItem, setActiveItem] = createSignal<string | undefined>(undefined)
   const [inputValue, setInputValue] = createSignal("")
   const [isDragging, setIsDragging] = createSignal<"left" | "right" | undefined>(undefined)
+  const [leftScrolled, setLeftScrolled] = createSignal(false)
 
   // TODO: remove
   local.model.set({ providerID: "opencode", modelID: "grok-code" })
@@ -224,19 +225,40 @@ export default function Page() {
         class="fixed top-0 left-0 h-full border-r border-border-subtle/30 flex flex-col overflow-hidden"
         style={`width: ${local.layout.leftWidth()}px`}
       >
-        <div class="relative flex-1 py-2 min-h-0 overflow-y-auto no-scrollbar">
-          <FileTree path="" onFileClick={handleFileClick} />
-          <div
-            class="pointer-events-none fixed top-0 left-px h-4 
-                 bg-gradient-to-t from-transparent to-background"
-            style={`width: ${local.layout.leftWidth() - 2}px`}
-          />
-          <div
-            class="pointer-events-none fixed bottom-0 left-px h-4
-                 bg-gradient-to-b from-transparent to-background"
-            style={`width: ${local.layout.leftWidth() - 2}px`}
-          />
-        </div>
+        <Tabs class="relative flex flex-col h-full" defaultValue="files">
+          <div class="sticky top-0 shrink-0 flex">
+            <Tabs.List class="grow w-full after:hidden">
+              <Tabs.Trigger value="files" class="flex-1 justify-center">
+                Files
+              </Tabs.Trigger>
+              <Tabs.Trigger value="changes" class="flex-1 justify-center">
+                Changes
+              </Tabs.Trigger>
+            </Tabs.List>
+          </div>
+          <Tabs.Content
+            value="files"
+            class="grow min-h-0 py-2 bg-background"
+            onScroll={(e: Event & { currentTarget: HTMLDivElement }) => setLeftScrolled(e.currentTarget.scrollTop > 0)}
+          >
+            <FileTree path="" onFileClick={handleFileClick} />
+            <Show when={leftScrolled()}>
+              <div
+                class="pointer-events-none sticky top-20 left-px h-4 
+                       bg-gradient-to-t from-transparent to-background"
+                style={`width: ${local.layout.leftWidth() - 2}px`}
+              />
+            </Show>
+            <div
+              class="pointer-events-none fixed bottom-0 left-px h-4
+                     bg-gradient-to-b from-transparent to-background"
+              style={`width: ${local.layout.leftWidth() - 2}px`}
+            />
+          </Tabs.Content>
+          <Tabs.Content value="changes" class="grow min-h-0 py-2 bg-background">
+            <div class="px-2 text-sm text-text-muted">No changes yet</div>
+          </Tabs.Content>
+        </Tabs>
       </div>
       <div
         class="fixed top-0 h-full w-1.5 bg-transparent cursor-col-resize z-50 group"
