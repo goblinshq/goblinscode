@@ -230,10 +230,8 @@ function ToolPart(props: { part: ToolPart; message: AssistantMessage }) {
     return (
       <box
         {...container}
-        ref={(r) => {
-          r.renderAfter = function () {
-            resize(this as BoxRenderable)
-          }
+        renderAfter={function () {
+          resize(this as BoxRenderable)
         }}
       >
         <Dynamic

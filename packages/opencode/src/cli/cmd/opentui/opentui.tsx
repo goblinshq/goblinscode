@@ -38,8 +38,10 @@ export const OpentuiCommand = cmd({
         {
           targetFps: 60,
           gatherStats: false,
+          useAlternateScreen: false,
         },
       )
+      console.log("done")
     })
   },
 })
