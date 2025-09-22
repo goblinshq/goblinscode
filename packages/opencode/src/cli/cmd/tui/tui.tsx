@@ -66,6 +66,7 @@ export const TuiCommand = cmd({
       () => {
         const renderer = useRenderer()
         useKeyboard(async (evt) => {
+          if (!evt.name) return
           if (evt.name === "c" && evt.ctrl) {
             await Instance.disposeAll()
             renderer.destroy()
@@ -91,6 +92,7 @@ export const TuiCommand = cmd({
         targetFps: 60,
         gatherStats: false,
         exitOnCtrlC: false,
+        useKittyKeyboard: true,
       },
     )
   },
@@ -145,7 +147,13 @@ function App() {
           </Match>
         </Switch>
       </box>
-      <box height={1} backgroundColor={Theme.backgroundPanel} flexDirection="row" justifyContent="space-between">
+      <box
+        height={1}
+        backgroundColor={Theme.backgroundPanel}
+        flexDirection="row"
+        justifyContent="space-between"
+        flexShrink={0}
+      >
         <box flexDirection="row">
           <box flexDirection="row" backgroundColor={Theme.backgroundElement} paddingLeft={1} paddingRight={1}>
             <text fg={Theme.textMuted}>open</text>

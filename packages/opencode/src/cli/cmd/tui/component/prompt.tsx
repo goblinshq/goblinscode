@@ -185,7 +185,7 @@ export function Prompt(props: PromptProps) {
               </text>
             </Match>
           </Switch>
-          <text>
+          <text flexShrink={0} wrap={false}>
             <span style={{ fg: Theme.textMuted }}>{local.model.parsed().provider}</span>{" "}
             <span style={{ bold: true }}>{local.model.parsed().model}</span>
           </text>

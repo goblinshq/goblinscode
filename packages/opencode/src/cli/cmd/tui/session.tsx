@@ -49,7 +49,7 @@ export function Session() {
   })
 
   return (
-    <box paddingTop={1} paddingBottom={1} paddingLeft={2} paddingRight={2} flexGrow={1} maxHeight="100%">
+    <box paddingTop={1} paddingBottom={1} paddingLeft={2} paddingRight={2} flexGrow={1}>
       <Show when={session()}>
         <box paddingLeft={1} paddingRight={1} {...SplitBorder} borderColor={Theme.backgroundElement}>
           <text>
@@ -76,6 +76,7 @@ export function Session() {
           stickyStart="bottom"
           paddingTop={1}
           paddingBottom={1}
+          height={45}
         >
           <For each={messages()}>
             {(message) => (
@@ -209,14 +210,16 @@ function ToolPart(props: { part: ToolPart; message: AssistantMessage }) {
 
     const metadata = props.part.state.status === "pending" ? {} : (props.part.state.metadata ?? {})
     const input = props.part.state.input
+    const container = ToolRegistry.container(props.part.tool)
 
-    const container: BoxProps =
-      ToolRegistry.container(props.part.tool) === "block"
+    const style: BoxProps =
+      container === "block"
         ? {
             border: ["left"] as const,
             paddingTop: 1,
             paddingBottom: 1,
             paddingLeft: 2,
+            marginTop: 1,
             gap: 1,
             backgroundColor: Theme.backgroundPanel,
             customBorderChars: SplitBorder.customBorderChars,
@@ -228,7 +231,7 @@ function ToolPart(props: { part: ToolPart; message: AssistantMessage }) {
 
     return (
       <box
-        {...container}
+        {...style}
         renderAfter={function () {
           resize(this as BoxRenderable)
         }}
@@ -366,10 +369,10 @@ ToolRegistry.register<typeof WriteTool>({
           Wrote {props.input.filePath}
         </ToolTitle>
         <box flexDirection="row">
-          <box>
+          <box flexShrink={0}>
             <For each={numbers()}>{(value) => <text style={{ fg: Theme.textMuted }}>{value}</text>}</For>
           </box>
-          <box paddingLeft={1}>
+          <box paddingLeft={1} flexGrow={1}>
             <text>{code()}</text>
           </box>
         </box>
