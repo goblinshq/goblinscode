@@ -16,7 +16,6 @@ import type { ReadTool } from "../../../tool/read"
 import type { WriteTool } from "../../../tool/write"
 import { BashTool } from "../../../tool/bash"
 import type { GlobTool } from "../../../tool/glob"
-import { Instance } from "../../../project/instance"
 import { TodoWriteTool } from "../../../tool/todo"
 import type { GrepTool } from "../../../tool/grep"
 import type { ListTool } from "../../../tool/ls"
@@ -71,7 +70,7 @@ export function Session() {
           </box>
         </box>
         <scrollbox
-          ref={(r: any) => (scroll = r)}
+          ref={(r) => (scroll = r)}
           scrollbarOptions={{ visible: false }}
           stickyScroll={true}
           stickyStart="bottom"
@@ -525,7 +524,7 @@ ToolRegistry.register<typeof TodoWriteTool>({
 
 function normalizePath(input: string) {
   if (path.isAbsolute(input)) {
-    return path.relative(Instance.directory, input) || "."
+    return path.relative(process.cwd(), input) || "."
   }
   return input
 }

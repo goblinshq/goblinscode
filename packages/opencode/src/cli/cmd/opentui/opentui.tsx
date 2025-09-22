@@ -1,5 +1,5 @@
 import { cmd } from "../cmd"
-import { render, useKeyHandler, useRenderer, useTerminalDimensions } from "@opentui/solid"
+import { render, useKeyboard, useKeyHandler, useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { TextAttributes } from "@opentui/core"
 import { RouteProvider, useRoute } from "./context/route"
 import { Home } from "./home"
@@ -8,21 +8,31 @@ import { Theme } from "./context/theme"
 import { Installation } from "../../../installation"
 import { Global } from "../../../global"
 import { DialogProvider, useDialog } from "./ui/dialog"
-import { bootstrap } from "../../bootstrap"
 import { SDKProvider } from "./context/sdk"
 import { SyncProvider } from "./context/sync"
 import { LocalProvider, useLocal } from "./context/local"
 import { DialogModel } from "./component/dialog-model"
 import { DialogCommand } from "./component/dialog-command"
 import { Session } from "./session"
+import { Instance } from "../../../project/instance"
+import { EventLoop } from "../../../util/eventloop"
 
 export const OpentuiCommand = cmd({
   command: "opentui",
   describe: "print hello",
   handler: async () => {
-    await bootstrap(process.cwd(), async () => {
-      await render(
-        () => (
+    await render(
+      () => {
+        const renderer = useRenderer()
+        useKeyboard(async (evt) => {
+          if (evt.name === "c" && evt.ctrl) {
+            await Instance.disposeAll()
+            renderer.destroy()
+            await EventLoop.wait()
+            process.exit(0)
+          }
+        })
+        return (
           <RouteProvider>
             <SDKProvider>
               <SyncProvider>
@@ -34,15 +44,14 @@ export const OpentuiCommand = cmd({
               </SyncProvider>
             </SDKProvider>
           </RouteProvider>
-        ),
-        {
-          targetFps: 60,
-          gatherStats: false,
-          useAlternateScreen: false,
-        },
-      )
-      console.log("done")
-    })
+        )
+      },
+      {
+        targetFps: 60,
+        gatherStats: false,
+        exitOnCtrlC: false,
+      },
+    )
   },
 })
 

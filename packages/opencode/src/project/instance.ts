@@ -44,4 +44,12 @@ export const Instance = {
   async dispose() {
     await State.dispose(Instance.directory)
   },
+  async disposeAll() {
+    for (const [key, value] of cache) {
+      context.provide(value, async () => {
+        process.stdout.write(`disposing ${key}...`)
+        await Instance.dispose()
+      })
+    }
+  },
 }

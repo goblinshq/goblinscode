@@ -11,7 +11,6 @@ import { useSync } from "../context/sync"
 import { Identifier } from "../../../../id/id"
 import { createStore, produce } from "solid-js/store"
 import type { FilePart } from "@opencode-ai/sdk"
-import { Instance } from "../../../../project/instance"
 import fuzzysort from "fuzzysort"
 
 export type PromptProps = {
@@ -295,7 +294,7 @@ function Autocomplete(props: {
               type: "file",
               mime: "text/plain",
               filename: file,
-              url: `file://${Instance.directory}/${file}`,
+              url: `file://${process.cwd()}/${file}`,
               source: {
                 type: "file",
                 text: {
