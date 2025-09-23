@@ -1,9 +1,5 @@
 import { useDialog } from "../ui/dialog"
-import { DialogModel } from "./dialog-model"
 import { DialogSelect, type DialogSelectOption } from "../ui/dialog-select"
-import { useRoute } from "../context/route"
-import { DialogSessionList } from "./dialog-session-list"
-import { DialogAgent } from "./dialog-agent"
 import {
   createContext,
   createMemo,
