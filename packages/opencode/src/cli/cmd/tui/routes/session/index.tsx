@@ -54,6 +54,12 @@ export function Session() {
     }, 50)
   }
 
+  // snap to bottom when revert position changes
+  createEffect((old) => {
+    if (old !== session()?.revert?.messageID) toBottom()
+    return session()?.revert?.messageID
+  })
+
   const local = useLocal()
 
   const command = useCommandDialog()
@@ -115,16 +121,14 @@ export function Session() {
         const revert = session().revert?.messageID
         const message = messages().findLast((x) => (!revert || x.id < revert) && x.role === "user")
         if (!message) return
-        sdk.session
-          .revert({
-            path: {
-              id: route.sessionID,
-            },
-            body: {
-              messageID: message.id,
-            },
-          })
-          .then(toBottom)
+        sdk.session.revert({
+          path: {
+            id: route.sessionID,
+          },
+          body: {
+            messageID: message.id,
+          },
+        })
         dialog.clear()
       },
     },
@@ -138,25 +142,21 @@ export function Session() {
         if (!messageID) return
         const message = messages().find((x) => x.role === "user" && x.id > messageID)
         if (!message) {
-          sdk.session
-            .unrevert({
-              path: {
-                id: route.sessionID,
-              },
-            })
-            .then(toBottom)
-          return
-        }
-        sdk.session
-          .revert({
+          sdk.session.unrevert({
             path: {
               id: route.sessionID,
             },
-            body: {
-              messageID: message.id,
-            },
           })
-          .then(toBottom)
+          return
+        }
+        sdk.session.revert({
+          path: {
+            id: route.sessionID,
+          },
+          body: {
+            messageID: message.id,
+          },
+        })
       },
     },
   ])
