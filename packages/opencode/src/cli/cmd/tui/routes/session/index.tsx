@@ -1,4 +1,4 @@
-import { createEffect, createMemo, For, Match, Show, Switch, type Component } from "solid-js"
+import { createEffect, createMemo, createSignal, For, Match, Show, Switch, type Component } from "solid-js"
 import { Dynamic } from "solid-js/web"
 import path from "path"
 import { useRouteData } from "@tui/context/route"
@@ -29,6 +29,8 @@ import { Shimmer } from "@tui/ui/shimmer"
 import { useKeybind } from "@tui/context/keybind"
 import { Header } from "./header"
 import { parsePatch } from "diff"
+import { useDialog } from "../../ui/dialog"
+import { DialogMessage } from "./dialog-message"
 
 export function Session() {
   const route = useRouteData("session")
@@ -162,38 +164,44 @@ export function Session() {
     },
   ])
 
-   const revert = createMemo(() => {
-     const s = session()
-     if (!s) return
-     const messageID = s.revert?.messageID
-     if (!messageID) return
-     const reverted = messages().filter((x) => x.id >= messageID && x.role === "user")
+  const revert = createMemo(() => {
+    const s = session()
+    if (!s) return
+    const messageID = s.revert?.messageID
+    if (!messageID) return
+    const reverted = messages().filter((x) => x.id >= messageID && x.role === "user")
 
-     const diffFiles = (() => {
-       const diffText = s.revert?.diff || ""
-       if (!diffText) return []
-       
-       const patches = parsePatch(diffText)
-       return patches.map(patch => {
-         const filename = patch.newFileName || patch.oldFileName || 'unknown'
-         const cleanFilename = filename.replace(/^[ab]\//, '')
-         return {
-           filename: cleanFilename,
-           additions: patch.hunks.reduce((sum, hunk) => 
-             sum + hunk.lines.filter(line => line.startsWith('+')).length, 0),
-           deletions: patch.hunks.reduce((sum, hunk) => 
-             sum + hunk.lines.filter(line => line.startsWith('-')).length, 0)
-         }
-       })
-     })()
+    const diffFiles = (() => {
+      const diffText = s.revert?.diff || ""
+      if (!diffText) return []
 
-     return {
-       messageID,
-       reverted,
-       diff: s.revert!.diff,
-       diffFiles,
-     }
-   })
+      const patches = parsePatch(diffText)
+      return patches.map((patch) => {
+        const filename = patch.newFileName || patch.oldFileName || "unknown"
+        const cleanFilename = filename.replace(/^[ab]\//, "")
+        return {
+          filename: cleanFilename,
+          additions: patch.hunks.reduce(
+            (sum, hunk) => sum + hunk.lines.filter((line) => line.startsWith("+")).length,
+            0,
+          ),
+          deletions: patch.hunks.reduce(
+            (sum, hunk) => sum + hunk.lines.filter((line) => line.startsWith("-")).length,
+            0,
+          ),
+        }
+      })
+    })()
+
+    return {
+      messageID,
+      reverted,
+      diff: s.revert!.diff,
+      diffFiles,
+    }
+  })
+
+  const dialog = useDialog()
 
   return (
     <box paddingTop={1} paddingBottom={1} paddingLeft={2} paddingRight={2} flexGrow={1}>
@@ -224,23 +232,23 @@ export function Session() {
                       <text fg={Theme.textMuted}>
                         <span style={{ fg: Theme.text }}>{keybind.print("messages_redo")}</span> or /redo to restore
                       </text>
-                       <Show when={revert()!.diffFiles?.length}>
-                         <box marginTop={1}>
-                           <For each={revert()!.diffFiles}>
-                             {(file) => (
-                               <text>
-                                 {file.filename}
-                                 <Show when={file.additions > 0}>
-                                   <span style={{ fg: Theme.diffAdded }}> +{file.additions}</span>
-                                 </Show>
-                                 <Show when={file.deletions > 0}>
-                                   <span style={{ fg: Theme.diffRemoved }}> -{file.deletions}</span>
-                                 </Show>
-                               </text>
-                             )}
-                           </For>
-                         </box>
-                       </Show>
+                      <Show when={revert()!.diffFiles?.length}>
+                        <box marginTop={1}>
+                          <For each={revert()!.diffFiles}>
+                            {(file) => (
+                              <text>
+                                {file.filename}
+                                <Show when={file.additions > 0}>
+                                  <span style={{ fg: Theme.diffAdded }}> +{file.additions}</span>
+                                </Show>
+                                <Show when={file.deletions > 0}>
+                                  <span style={{ fg: Theme.diffRemoved }}> -{file.deletions}</span>
+                                </Show>
+                              </text>
+                            )}
+                          </For>
+                        </box>
+                      </Show>
                     </box>
                   </box>
                 </Match>
@@ -248,7 +256,13 @@ export function Session() {
                   <></>
                 </Match>
                 <Match when={message.role === "user"}>
-                  <UserMessage message={message as UserMessage} parts={sync.data.part[message.id] ?? []} />
+                  <UserMessage
+                    onMouseDown={() =>
+                      dialog.replace(() => <DialogMessage messageID={message.id} sessionID={route.sessionID} />)
+                    }
+                    message={message as UserMessage}
+                    parts={sync.data.part[message.id] ?? []}
+                  />
                 </Match>
                 <Match when={message.role === "assistant"}>
                   <AssistantMessage
@@ -294,18 +308,27 @@ const MIME_BADGE: Record<string, string> = {
   "application/pdf": "pdf",
 }
 
-function UserMessage(props: { message: UserMessage; parts: Part[] }) {
+function UserMessage(props: { message: UserMessage; parts: Part[]; onMouseDown: () => void }) {
   const text = createMemo(() => props.parts.flatMap((x) => (x.type === "text" && !x.synthetic ? [x] : []))[0])
   const files = createMemo(() => props.parts.flatMap((x) => (x.type === "file" ? [x] : [])))
   const sync = useSync()
+  const [hover, setHover] = createSignal(false)
+
   return (
     <box
+      onMouseOver={() => {
+        setHover(true)
+      }}
+      onMouseOut={() => {
+        setHover(false)
+      }}
+      onMouseDown={props.onMouseDown}
       border={["left"]}
       paddingTop={1}
       paddingBottom={1}
       paddingLeft={2}
       marginTop={1}
-      backgroundColor={Theme.backgroundPanel}
+      backgroundColor={hover() ? Theme.backgroundElement : Theme.backgroundPanel}
       customBorderChars={SplitBorder.customBorderChars}
       borderColor={Theme.secondary}
       flexShrink={0}

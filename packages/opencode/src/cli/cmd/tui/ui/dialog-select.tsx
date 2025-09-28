@@ -39,13 +39,20 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
 
   let input: InputRenderable
 
-  const grouped = createMemo(() => {
+  const filtered = createMemo(() => {
     const needle = store.filter.toLowerCase()
     const result = pipe(
       props.options,
       filter((x) => x.disabled !== false),
       take(props.limit ?? Infinity),
       (x) => (!needle ? x : fuzzysort.go(needle, x, { keys: ["title", "category"] }).map((x) => x.obj)),
+    )
+    return result
+  })
+
+  const grouped = createMemo(() => {
+    const result = pipe(
+      filtered(),
       groupBy((x) => x.category ?? ""),
       // mapValues((x) => x.sort((a, b) => a.title.localeCompare(b.title))),
       entries(),
@@ -71,6 +78,10 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
     let next = store.selected + direction
     if (next < 0) next = flat().length - 1
     if (next >= flat().length) next = 0
+    moveTo(next)
+  }
+
+  function moveTo(next: number) {
     setStore("selected", next)
     const target = scroll.getChildren().find((child) => {
       return child.id === JSON.stringify(selected()?.value)
@@ -148,15 +159,32 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
               </Show>
               <For each={options}>
                 {(option) => {
+                  const active = createMemo(() => isDeepEqual(option.value, selected()?.value))
                   return (
-                    <Option
+                    <box
                       id={JSON.stringify(option.value)}
-                      title={option.title}
-                      footer={option.footer ?? (option.keybind ? keybind.print(option.keybind as any) : undefined)}
-                      description={option.description !== category ? option.description : undefined}
-                      active={isDeepEqual(option.value, selected()?.value)}
-                      current={isDeepEqual(option.value, props.current)}
-                    />
+                      flexDirection="row"
+                      onMouseUp={() => {
+                        option.onSelect?.(dialog)
+                        props.onSelect?.(option)
+                      }}
+                      onMouseOver={() => {
+                        const index = filtered().findIndex((x) => isDeepEqual(x.value, option.value))
+                        if (index === -1) return
+                        moveTo(index)
+                      }}
+                      backgroundColor={active() ? Theme.primary : RGBA.fromInts(0, 0, 0, 0)}
+                      paddingLeft={1}
+                      paddingRight={1}
+                    >
+                      <Option
+                        title={option.title}
+                        footer={option.footer ?? (option.keybind ? keybind.print(option.keybind as any) : undefined)}
+                        description={option.description !== category ? option.description : undefined}
+                        active={active()}
+                        current={isDeepEqual(option.value, props.current)}
+                      />
+                    </box>
                   )
                 }}
               </For>
@@ -181,21 +209,15 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
 }
 
 function Option(props: {
-  id: string
   title: string
   description?: string
   active?: boolean
   current?: boolean
   footer?: string
+  onMouseOver?: () => void
 }) {
   return (
-    <box
-      id={props.id}
-      flexDirection="row"
-      backgroundColor={props.active ? Theme.primary : RGBA.fromInts(0, 0, 0, 0)}
-      paddingLeft={1}
-      paddingRight={1}
-    >
+    <>
       <box flexGrow={1} flexShrink={0} flexDirection="row">
         <text
           fg={props.active ? Theme.background : props.current ? Theme.primary : Theme.text}
@@ -208,6 +230,6 @@ function Option(props: {
       <Show when={props.footer}>
         <text fg={props.active ? Theme.background : Theme.textMuted}>{props.footer}</text>
       </Show>
-    </box>
+    </>
   )
 }
