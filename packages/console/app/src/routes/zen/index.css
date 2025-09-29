@@ -149,6 +149,7 @@
         }
 
         [data-component="nav-mobile-menu-list"] {
+          display: none;
           position: fixed;
           background: var(--color-background);
           top: 80px;
