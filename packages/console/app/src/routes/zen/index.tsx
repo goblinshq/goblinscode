@@ -33,7 +33,7 @@ export default function Home() {
 
   return (
     <main data-page="zen">
-      <Title>OpenCode Zen | A curated set of reliable coding optimized models</Title>
+      <Title>OpenCode Zen | A curated set of reliable optimized models for coding agents</Title>
 
       <div data-component="container">
         <Header zen />
@@ -44,7 +44,7 @@ export default function Home() {
               <div data-slot="hero-copy">
                 <img data-slot="zen logo light" src={zenLogoLight} alt="zen logo light" />
                 <img data-slot="zen logo dark" src={zenLogoDark} alt="zen logo dark" />
-                <strong>Reliable optimized models purely for coding</strong>
+                <strong>Reliable optimized models for coding agents</strong>
                 <p>
                   Zen gives you access to a curated set of AI models that OpenCode has tested and benchmarked
                   specifically for coding agents. No need to worry about inconsistent performance and quality, use
@@ -180,7 +180,7 @@ export default function Home() {
               <li>
                 <span>[2]</span>
                 <div>
-                  <strong>Use Zen at cost price</strong> - pay per request with zero markups
+                  <strong>Use Zen with transparent pricing</strong> - pay per request with zero markups
                 </div>
               </li>
               <li>
@@ -198,7 +198,7 @@ export default function Home() {
               <div>
                 <p>
                   <span>[◇]</span> All Zen models are hosted in the US. Providers follow a zero-retention policy and do
-                  not use your data for model training, with the following exceptions.
+                  not use your data for model training, with the <A href="../docs/zen/#privacy">following exceptions</A>.
                 </p>
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function Home() {
                   <span>ex-CEO, Terminal Products</span>
                 </div>
                 <div data-slot="quote">
-                  I can't recommend <span>@OpenCode</span> Zen enough. Seriously, it’s really good.
+                  It's clear from using <span>@OpenCode</span> Zen that the team behind it are smart, funny, and excellent lovers.
                 </div>
               </div>
             </A>
@@ -227,20 +227,7 @@ export default function Home() {
                   <span>ex-Founder, SEED, PM, Melt, Pop, Dapt, Cadmus, and ViewPoint</span>
                 </div>
                 <div data-slot="quote">
-                  I can't recommend <span>@OpenCode</span> Zen enough. Seriously, it’s really good.
-                </div>
-              </div>
-            </A>
-            {/*Frank*/}
-            <A href="https://x.com/iamdavidhill/status/1971693263498141817">
-              <div data-slot="testimonial">
-                <div data-slot="name">
-                  <img src={avatarFrank} alt="" />
-                  <strong>Frank Wang</strong>
-                  <span>ex-Intern, Nvidia (4 times)</span>
-                </div>
-                <div data-slot="quote">
-                  I can't recommend <span>@OpenCode</span> Zen enough. Seriously, it’s really good.
+                  4 out 5 people on our team love using <span>@OpenCode</span> Zen.
                 </div>
               </div>
             </A>
@@ -266,7 +253,20 @@ export default function Home() {
                   <span>ex-Head of Design, Laravel</span>
                 </div>
                 <div data-slot="quote">
-                  I can't recommend <span>@OpenCode</span> Zen enough. Seriously, it’s really good.
+                  With <span>@OpenCode</span> Zen I know all the models are tested and perfect for coding agents.
+                </div>
+              </div>
+            </A>
+            {/*Frank*/}
+            <A href="https://x.com/iamdavidhill/status/1971693263498141817">
+              <div data-slot="testimonial">
+                <div data-slot="name">
+                  <img src={avatarFrank} alt="" />
+                  <strong>Frank Wang</strong>
+                  <span>ex-Intern, Nvidia (4 times)</span>
+                </div>
+                <div data-slot="quote">
+                  I wish I was still at Nvidia.
                 </div>
               </div>
             </A>
@@ -290,13 +290,6 @@ export default function Home() {
                 </Faq>
               </li>
               <li>
-                <Faq question="Is Zen faster?">
-                  OpenCode cares about balancing quality and speed in a way that’s optimized for coding. We only select
-                  configurations that fit that criteria. Typically high quality equates to slower responses, and fast
-                  responses equates to low quality. For development OpenCode believes in balance.
-                </Faq>
-              </li>
-              <li>
                 <Faq question="Is Zen cheaper?">
                   Zen is not for profit. Zen passes through the costs from the model providers to you. The higher Zen’s
                   usage the more OpenCode can negotiate better rates and pass those to users too.
@@ -304,21 +297,12 @@ export default function Home() {
               </li>
               <li>
                 <Faq question="How much does Zen cost?">
-                  Zen bills per request at cost price, with zero markups. Meaning what the model provider charges is
-                  exactly what you pay. How much Zen costs will depend on your usage of Zen. You can set monthly spend
-                  limits in your account.
-                </Faq>
-              </li>
-              <li>
-                <Faq question="How does Zen pricing work?">
-                  Zen charges per request at cost price, with zero markups. Meaning what you only pay what the provider
-                  charges per request. OpenCode charges a small payment processing fee of $1.23 per $20 balance top-up
-                  to cover costs.
+                  Zen charges per request with zero markups, so you pay exactly what the model provider charges. Your total cost depends on usage, and you can set monthly spend limits in your <a href="auth">account</a>. To cover costs, OpenCode adds only a small payment processing fee of $1.23 per $20 balance top-up.
                 </Faq>
               </li>
               <li>
                 <Faq question="What about data and privacy?">
-                  We take your data and privacy seriously. All Zen models are hosted in the US. Providers follow a
+                  All Zen models are hosted in the US. Providers follow a
                   zero-retention policy and do not use your data for model training, with the{" "}
                   <A href="../docs/zen/#privacy">following exceptions</A>.
                 </Faq>
@@ -333,8 +317,7 @@ export default function Home() {
               </li>
               <li>
                 <Faq question="Can I use Zen with other coding agents?">
-                  While we suggest you use Zen with OpenCode, you can use Zen with any agent. Follow the setup
-                  instructions in your preferred coding agent.
+                  While Zen works great with OpenCode, you can use Zen with any agent. Follow the setup instructions in your preferred coding agent.
                 </Faq>
               </li>
             </ul>

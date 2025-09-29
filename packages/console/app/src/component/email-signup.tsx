@@ -37,13 +37,13 @@ export function EmailSignup() {
         <button type="submit" disabled={submission.pending}>
           Subscribe
         </button>
-        <Show when={submission.result}>
-          <div>Thank you for subscribing!</div>
-        </Show>
-        <Show when={submission.error}>
-          <div>{submission.error}</div>
-        </Show>
       </form>
+      <Show when={submission.result}>
+        <div style="color: #03B000; margin-top: 24px;">Thanks, you're on the waitlist</div>
+      </Show>
+      <Show when={submission.error}>
+        <div style="color: #FF408F; margin-top: 24px;">{submission.error}</div>
+      </Show>
     </section>
   )
 }

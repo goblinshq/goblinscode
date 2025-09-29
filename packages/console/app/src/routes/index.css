@@ -18,7 +18,7 @@
   --color-background-interactive-weaker: hsl(64, 74%, 95%);
 
   --color-text: hsl(0, 1%, 39%);
-  --color-text-weak: hsl(0, 1%, 74%);
+  --color-text-weak: hsl(0, 1%, 60%);
   --color-text-weaker: hsl(30, 2%, 81%);
   --color-text-strong: hsl(0, 5%, 12%);
   --color-text-inverted: hsl(0, 20%, 99%);
@@ -56,6 +56,7 @@
   --padding: 5rem;
   --vertical-padding: 4rem;
   --heading-font-size: 1.375rem;
+  border-top: 1px solid var(--color-border-weak);
 
   @media (max-width: 60rem) {
     --padding: 1.5rem;
@@ -74,6 +75,10 @@
     text-decoration: underline;
     text-underline-offset: var(--space-2);
     text-decoration-thickness: 1px;
+  }
+
+  p {
+    line-height: 200%;
   }
 
   [data-component="container"] {
@@ -264,7 +269,7 @@
       color: var(--color-text-secondary);
       gap: var(--space-2);
       color: var(--color-text);
-      padding: 8px 8px;
+      padding: 8px 16px 8px 8px;
       border-radius: 4px;
 
       [data-slot="highlight"] {
@@ -292,17 +297,38 @@
     border-left: none;
 
     [data-slot="hero-copy"] {
-      img {
-        margin-bottom: 56px;
+      [data-slot="releases"] {
+        background: none;
+        color: var(--color-text-weak);
+        padding: 0;
+        border: none;
+        font-weight: 400;
+        cursor: pointer;
+        margin-bottom: 14px;
+        border-radius: 0;
+        display: flex;
+        width: fit-content;
+        gap: 12px;
+        text-decoration: none;
+        padding-bottom: 2px;
+        border-bottom: 1px solid transparent;
+      }
+
+      [data-slot="releases"]:hover {
+        background: none;
+        padding-bottom: 2px;
+        border-bottom: 1px solid var(--color-border-weak);
       }
 
       strong {
-        font-size: 24px;
+        font-size: 28px;
         color: var(--color-text-strong);
         font-weight: 500;
         margin-bottom: 16px;
         display: block;
       }
+
+
 
       p {
         color: var(--color-text-secondary);
@@ -322,7 +348,7 @@
         border-radius: 4px;
         font-weight: 500;
         cursor: pointer;
-        margin-bottom: 56px;
+        margin-bottom: 80px;
         display: flex;
         width: fit-content;
         gap: 12px;

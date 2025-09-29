@@ -23,6 +23,7 @@ function CopyStatus() {
   )
 }
 
+
 const defaultWorkspace = query(async () => {
   "use server"
   const actor = await getActor()
@@ -49,7 +50,7 @@ export default function Home() {
 
   return (
     <main data-page="opencode">
-      <Title>OpenCode | The AI coding agent built for the terminal models</Title>
+      <Title>OpenCode | The AI coding agent built for the terminal</Title>
 
       <div data-component="container">
         <Header />
@@ -58,14 +59,19 @@ export default function Home() {
           <section data-component="hero">
             <div data-component="center">
               <div data-slot="hero-copy">
+                <a data-slot="releases"
+                   href="https://github.com/sst/opencode/releases"
+                   target="_blank">See what’s new in the latest release</a>
                 <strong>The AI coding agent built for the terminal</strong>
                 <p>
-                  OpenCode is fully open source, giving you control and freedom to use any provider, any model, and any
+                  OpenCode is fully open source, giving you control and freedom
+                  to use any provider, any model, and any
                   editor.
                 </p>
                 <A href="/docs">
                   <span>Read docs </span>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                       xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M6.5 12L17 12M13 16.5L17.5 12L13 7.5"
                       stroke="currentColor"
@@ -332,8 +338,7 @@ export default function Home() {
                 <span>[◇]</span>
 
                 <p>
-                  OpenCode takes a very conservative approach so that it can operate smoothly in privacy sensitive
-                  environments. Learn more about <A href="/docs/share/#privacy">privacy</A>.
+                  OpenCode does not store any of your code or context data, so that it can operate in privacy sensitive environments. Learn more about <A href="/docs/enterprise/ ">privacy and enterprise</A>.
                 </p>
               </div>
             </div>
@@ -394,26 +399,12 @@ export default function Home() {
                   issues, submit pull requests, and extend functionality.
                 </Faq>
               </li>
-              <li>
-                <Faq question="Can I set spend limits?">Yes, set monthly spending limits in your account.</Faq>
-              </li>
-              <li>
-                <Faq question="Can I cancel?">
-                  Yes, you can disable billing at any time and enjoy your remaining balance.
-                </Faq>
-              </li>
-              <li>
-                <Faq question="Can I use Zen with other coding agents?">
-                  While we suggest you use Zen with OpenCode, you can use Zen with any agent. Follow the setup
-                  instructions in your preferred coding agent.
-                </Faq>
-              </li>
             </ul>
           </section>
 
           <section data-component="zen-cta">
             <div data-slot="zen-cta-copy">
-              <strong>Access reliable optimized models purely for coding</strong>
+              <strong>Access reliable optimized models for coding agents</strong>
               <p>
                 Zen gives you access to a handpicked set of AI models that OpenCode has tested and benchmarked
                 specifically for coding agents. No need to worry about inconsistent performance and quality across
