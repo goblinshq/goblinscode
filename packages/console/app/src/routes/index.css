@@ -672,6 +672,8 @@
         padding: 4px 20px;
         color: var(--color-text-inverted);
         border-radius: 4px;
+        border: none;
+        outline: none;
         font-weight: 500;
         cursor: pointer;
         top: 50%;
