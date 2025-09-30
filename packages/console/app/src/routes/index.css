@@ -235,6 +235,10 @@
       display: none;
     }
 
+    @media (max-width: 60Rem) {
+      padding: var(--vertical-padding) var(--padding)
+    }
+
     @media (prefers-color-scheme: dark) {
       [data-slot="zen logo light"] {
         display: none;
@@ -465,6 +469,10 @@
   [data-slot="section-title"] {
     margin-bottom: 24px;
     max-width: 100%;
+
+    @media (max-width: 30Rem) {
+      margin-bottom: 0;
+    }
 
     div {
       display: flex;
@@ -775,6 +783,7 @@
     [data-slot="faq-answer"] {
       margin-left: 40px;
       margin-bottom: 32px;
+      line-height: 200%;
     }
   }
 

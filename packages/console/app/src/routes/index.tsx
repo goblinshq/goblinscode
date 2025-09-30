@@ -69,8 +69,7 @@ export default function Home() {
               >
                 What’s new in {release()?.name ?? "the latest release"}
               </a>
-              <strong>The AI coding agent built for the terminal.
-                thanks.</strong>
+              <strong>The AI coding agent built for the terminal</strong>
               <p>
                 OpenCode is fully open source, giving you control and freedom to
                 use any provider, any model, and any
