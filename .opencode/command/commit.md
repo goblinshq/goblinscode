@@ -7,3 +7,5 @@ core:
 ci:
 ignore:
 wip:
+
+the message should prefer to explain WHY something was changed rather than WHAT was changed
