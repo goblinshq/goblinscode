@@ -840,7 +840,13 @@
       background: none;
       border: none;
       padding: 0;
-      align-items: center;
+      align-items: start;
+      min-height: 24px;
+
+      svg {
+        margin-top: 2px;
+      }
+
 
       [data-slot="faq-icon-plus"] {
         flex-shrink: 0;
