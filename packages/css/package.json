@@ -6,7 +6,13 @@
     ".": "./src/index.css",
     "./*": "./src/*"
   },
+  "scripts": {
+    "build": "tailwindcss -i ./src/index.css -o ./dist/index.css"
+  },
   "dependencies": {
     "tailwindcss": "4.1.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.1.14"
   }
 }

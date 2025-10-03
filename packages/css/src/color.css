@@ -1,0 +1,40 @@
+/* base colors */
+
+@theme static {
+  --color-*: initial;
+  --color-smoke-light-1: hsl(0, 20%, 99%);
+  --color-smoke-light-2: hsl(0, 8%, 97%);
+  --color-smoke-light-6: hsl(0, 1%, 85%);
+  --color-smoke-light-7: hsl(30, 2%, 81%);
+  --color-smoke-light-8: hsl(0, 1%, 74%);
+  --color-smoke-light-9: hsl(0, 1%, 55%);
+  --color-smoke-light-11: hsl(0, 1%, 39%);
+  --color-smoke-light-12: hsl(0, 5%, 12%);
+
+  --color-yuzu-light-5: hsl(61, 67%, 76%);
+}
+
+/* semantic colors */
+
+@theme static {
+  --color-background: var(--color-smoke-light-1);
+  --color-background-weak: var(--color-smoke-light-2);
+  --color-text: var(--color-smoke-light-11);
+  --color-text-weak: var(--color-smoke-light-8);
+  --color-text-weaker: var(--color-smoke-light-7);
+  --color-text-strong: var(--color-smoke-light-12);
+  --color-text-inverted: var(--color-smoke-light-1);
+
+  --color-border: var(--color-smoke-light-7);
+  --color-border-weak: var(--color-smoke-light-6);
+  --color-icon: var(--color-smoke-light-9);
+  --color-selection: var(--color-yuzu-light-5);
+}
+
+
+@layer base {
+  [data-theme="dark"] {
+    @theme static {
+    }
+  }
+}
