@@ -203,6 +203,10 @@ export const BashTool = Tool.define("bash", {
       output += "\n\n(Output was truncated due to length limit)"
     }
 
+    if (process.signalCode === "SIGTERM" && params.timeout) {
+      output += `\n\n(Command timed out after ${timeout} ms)`
+    }
+
     return {
       title: params.command,
       metadata: {
