@@ -1496,9 +1496,9 @@ export type SessionTodoResponse = SessionTodoResponses[keyof SessionTodoResponse
 
 export type SessionInitData = {
   body?: {
-    messageID: string
-    providerID: string
     modelID: string
+    providerID: string
+    messageID: string
   }
   path: {
     /**
@@ -1526,9 +1526,12 @@ export type SessionForkData = {
     messageID?: string
   }
   path: {
+<<<<<<< HEAD
     /**
      * Session ID
      */
+=======
+>>>>>>> dev
     id: string
   }
   query?: {
@@ -2075,6 +2078,22 @@ export type AppAgentsResponses = {
 }
 
 export type AppAgentsResponse = AppAgentsResponses[keyof AppAgentsResponses]
+
+export type McpStatusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/mcp"
+}
+
+export type McpStatusResponses = {
+  /**
+   * MCP server status
+   */
+  200: unknown
+}
 
 export type TuiAppendPromptData = {
   body?: {
