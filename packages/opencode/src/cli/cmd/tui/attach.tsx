@@ -186,7 +186,11 @@ function App(props: { onExit: () => void }) {
       onMouseUp={async () => {
         const text = renderer.getSelection()?.getSelectedText()
         if (text && text.length > 0) {
-          console.log("copying", text)
+          const base64 = Buffer.from(text).toString("base64")
+          const osc52 = `\x1b]52;c;${base64}\x07`
+          const finalOsc52 = process.env["TMUX"] ? `\x1bPtmux;\x1b${osc52}\x1b\\` : osc52
+          /* @ts-expect-error */
+          renderer.writeOut(finalOsc52)
           await Clipboard.copy(text)
           renderer.clearSelection()
         }
