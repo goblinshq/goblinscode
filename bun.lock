@@ -24,6 +24,7 @@
         "@solidjs/meta": "^0.29.4",
         "@solidjs/router": "^0.15.0",
         "@solidjs/start": "^1.1.0",
+        "solid-js": "catalog:",
         "vinxi": "^0.5.7",
         "zod": "catalog:",
       },
@@ -85,6 +86,7 @@
         "@tsconfig/bun": "1.0.9",
         "@types/react": "18.0.25",
         "react": "18.2.0",
+        "solid-js": "catalog:",
       },
     },
     "packages/console/resource": {
@@ -122,6 +124,7 @@
         "marked-shiki": "1.2.1",
         "remeda": "catalog:",
         "shiki": "3.9.2",
+        "solid-js": "catalog:",
         "solid-list": "0.3.0",
         "tailwindcss": "4.1.11",
         "virtua": "0.42.3",
