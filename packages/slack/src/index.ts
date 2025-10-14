@@ -1,5 +1,5 @@
 import { App } from "@slack/bolt"
-import { createOpencode } from "@opencode-ai/sdk"
+import { createOpencode, type ToolPart } from "@opencode-ai/sdk"
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -38,24 +38,16 @@ const sessions = new Map<string, { client: any; server: any; sessionId: string; 
   }
 })()
 
-async function handleToolUpdate(toolPart: any, channel: string, thread: string) {
-  const toolName = toolPart.tool || "unknown"
-  const state = toolPart.state || "unknown"
-  const title = toolPart.title
-  const icon = state === "completed" ? "✅" : state === "error" ? "❌" : state === "running" ? "🔄" : "⏳"
-
-  const toolMessage = title ? `${icon} *${toolName}* - ${title}` : `${icon} *${toolName}*`
-
-  // Just send a single message for this tool event
-  try {
-    await app.client.chat.postMessage({
+async function handleToolUpdate(part: ToolPart, channel: string, thread: string) {
+  if (part.state.status !== "completed") return
+  const toolMessage = `*${part.tool}* - ${part.state.title}`
+  await app.client.chat
+    .postMessage({
       channel,
       thread_ts: thread,
       text: toolMessage,
     })
-  } catch (error) {
-    console.error("Failed to send tool update:", error)
-  }
+    .catch(() => {})
 }
 
 app.use(async ({ next, context }) => {
