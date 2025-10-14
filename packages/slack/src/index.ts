@@ -83,16 +83,35 @@ app.message(async ({ message, say }) => {
   }
 
   const response = result.data
+
+  // Extract tool calls from response parts
+  const toolParts = response.parts?.filter((p: any) => p.type === "tool") || []
+  const textParts = response.parts?.filter((p: any) => p.type === "text") || []
+
+  // Build response text
   const responseText =
     response.info?.content ||
-    response.parts
-      ?.filter((p: any) => p.type === "text")
-      .map((p: any) => p.text)
-      .join("\n") ||
+    textParts.map((p: any) => p.text).join("\n") ||
     "I received your message but didn't have a response."
 
   console.log("💬 Sending response:", responseText)
+
+  // Send main response
   await say({ text: responseText, thread_ts: thread })
+
+  // Send tool call information if any tools were used and completed
+  const completedTools = toolParts.filter((tool: any) => tool.state === "completed")
+  if (completedTools.length > 0) {
+    const toolMessages = completedTools.map((tool: any) => {
+      const toolName = tool.tool || "unknown"
+      return `✅ *${toolName}*`
+    })
+
+    await say({
+      text: `🔧 Tools used:\n${toolMessages.join("\n")}`,
+      thread_ts: thread,
+    })
+  }
 })
 
 app.command("/test", async ({ command, ack, say }) => {
