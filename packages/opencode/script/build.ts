@@ -8,6 +8,7 @@ const dir = new URL("..", import.meta.url).pathname
 process.chdir(dir)
 
 import pkg from "../package.json"
+import { Script } from "@opencode-ai/script"
 
 const singleFlag = process.argv.includes("--single")
 
@@ -28,7 +29,6 @@ const targets = singleFlag
 await $`rm -rf dist`
 
 const binaries: Record<string, string> = {}
-const version = process.env["OPENCODE_VERSION"] ?? "dev"
 for (const [os, arch] of targets) {
   console.log(`building ${os}-${arch}`)
   const name = `${pkg.name}-${os}-${arch}`
@@ -51,7 +51,7 @@ for (const [os, arch] of targets) {
     compile: {
       target: `bun-${os}-${arch}` as any,
       outfile: `dist/${name}/bin/opencode`,
-      execArgv: [`--user-agent=opencode/${version}`, `--env-file=""`, `--`],
+      execArgv: [`--user-agent=opencode/${Script.version}`, `--env-file=""`, `--`],
       windows: {},
     },
     entrypoints: [
@@ -60,7 +60,7 @@ for (const [os, arch] of targets) {
       "./src/cli/cmd/tui/worker.ts",
     ],
     define: {
-      OPENCODE_VERSION: `'${version}'`,
+      OPENCODE_VERSION: `'${Script.version}'`,
       OTUI_TREE_SITTER_WORKER_PATH: "/$bunfs/root/../../node_modules/@opentui/core/parser.worker.js",
     },
   })
@@ -70,7 +70,7 @@ for (const [os, arch] of targets) {
     JSON.stringify(
       {
         name,
-        version,
+        version: Script.version,
         os: [os === "windows" ? "win32" : os],
         cpu: [arch],
       },
@@ -78,7 +78,7 @@ for (const [os, arch] of targets) {
       2,
     ),
   )
-  binaries[name] = version
+  binaries[name] = Script.version
 }
 
 export { binaries }
