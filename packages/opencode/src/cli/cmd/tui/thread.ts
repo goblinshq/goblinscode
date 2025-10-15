@@ -29,6 +29,12 @@ export const TuiThreadCommand = cmd({
     const worker = new Worker("./src/cli/cmd/tui/worker.ts")
     worker.onerror = console.error
     const client = Rpc.client<typeof rpc>(worker)
+    process.on("uncaughtException", (e) => {
+      console.error(e)
+    })
+    process.on("unhandledRejection", (e) => {
+      console.error(e)
+    })
     const server = await client.call("server", {
       port: args.port,
       hostname: args.hostname,
