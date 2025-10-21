@@ -188,10 +188,6 @@ export function Prompt(props: PromptProps) {
           messageID,
         },
       })
-      setStore("prompt", {
-        input: "",
-        parts: [],
-      })
     } else {
       sdk.client.session.prompt({
         path: {
