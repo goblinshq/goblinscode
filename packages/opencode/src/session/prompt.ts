@@ -1272,6 +1272,7 @@ export namespace SessionPrompt {
                 assistantMsg.tokens = usage.tokens
                 await Session.updatePart({
                   id: Identifier.ascending("part"),
+                  reason: value.finishReason,
                   snapshot: await Snapshot.track(),
                   messageID: assistantMsg.id,
                   sessionID: assistantMsg.sessionID,
