@@ -173,6 +173,7 @@ export namespace SessionCompaction {
             ],
           },
         ],
+        tools: [],
       })
 
     // TODO: reduce duplication between compaction.ts & prompt.ts
