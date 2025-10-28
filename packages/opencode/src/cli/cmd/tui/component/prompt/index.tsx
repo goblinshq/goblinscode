@@ -25,6 +25,8 @@ import { useCommandDialog } from "../dialog-command"
 import { useRenderer } from "@opentui/solid"
 import { Editor } from "@tui/util/editor"
 import { useExit } from "../../context/exit"
+import { Clipboard } from "../../util/clipboard"
+import type { FilePart } from "@opencode-ai/sdk"
 
 export type PromptProps = {
   sessionID?: string
@@ -139,6 +141,23 @@ export function Prompt(props: PromptProps) {
           dialog.clear()
         },
       },
+      {
+        title: "Paste",
+        value: "prompt.paste",
+        disabled: true,
+        keybind: "input_paste",
+        category: "Prompt",
+        onSelect: async () => {
+          const content = await Clipboard.read()
+          if (content?.mime.startsWith("image/")) {
+          await pasteImage({
+            filename: "clipboard",
+            mime: content.mime,
+            content: content.data,
+          })
+          }
+        },
+      }
     ]
   })
 
@@ -383,6 +402,50 @@ export function Prompt(props: PromptProps) {
     input.clear()
   }
   const exit = useExit()
+
+  async function pasteImage(file: {filename?: string, content: string, mime: string}) {
+                const currentOffset = input.visualCursor.offset
+                const extmarkStart = currentOffset
+                  const count = store.prompt.parts.filter((x) => x.type === "file").length
+                  const virtualText = `[Image ${count + 1}]`
+                  const extmarkEnd = extmarkStart + virtualText.length
+                  const textToInsert = virtualText + " "
+
+                  input.insertText(textToInsert)
+
+                  const extmarkId = input.extmarks.create({
+                    start: extmarkStart,
+                    end: extmarkEnd,
+                    virtual: true,
+                    styleId: pasteStyleId,
+                    typeId: promptPartTypeId,
+                  })
+
+                  const part: Omit<FilePart, "id" | "messageID" | "sessionID"> = {
+                    type: "file" as const,
+                    mime: file.mime,
+                    filename: file.filename,
+                    url: `data:${file.mime};base64,${file.content}`,
+                    source: {
+                      type: "file",
+                      path: file.filename ?? "",
+                      text: {
+                        start: extmarkStart,
+                        end: extmarkEnd,
+                        value: virtualText,
+                      },
+                    },
+                  }
+                  setStore(
+                    produce((draft) => {
+                      const partIndex = draft.prompt.parts.length
+                      draft.prompt.parts.push(part)
+                      draft.extmarkToPartIndex.set(extmarkId, partIndex)
+                    }),
+                  )
+                  return
+
+  }
 
   return (
     <>
