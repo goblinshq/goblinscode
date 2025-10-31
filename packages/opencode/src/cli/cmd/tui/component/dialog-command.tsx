@@ -76,6 +76,7 @@ export function CommandProvider(props: ParentProps) {
 
   useKeyboard((evt) => {
     if (keybind.match("command_list", evt)) {
+      evt.preventDefault()
       dialog.replace(() => <DialogCommand options={value.options} />)
       return
     }
