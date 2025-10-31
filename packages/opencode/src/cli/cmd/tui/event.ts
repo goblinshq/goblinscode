@@ -1,6 +1,5 @@
 import { Bus } from "@/bus"
 import z from "zod"
-import { Schema as ToastSchema } from "./ui/toast"
 
 export const TuiEvent = {
   PromptAppend: Bus.event("tui.prompt.append", z.object({ text: z.string() })),
@@ -28,5 +27,13 @@ export const TuiEvent = {
       ]),
     }),
   ),
-  ToastShow: Bus.event("tui.toast.show", ToastSchema),
+  ToastShow: Bus.event(
+    "tui.toast.show",
+    z.object({
+      title: z.string().optional(),
+      message: z.string(),
+      variant: z.enum(["info", "success", "warning", "error"]),
+      duration: z.number().default(5000).optional().describe("Duration in milliseconds"),
+    }),
+  ),
 }

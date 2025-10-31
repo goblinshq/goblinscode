@@ -4,15 +4,9 @@ import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "../component/border"
 import { TextAttributes } from "@opentui/core"
 import z from "zod"
+import { TuiEvent } from "../event"
 
-export const Schema = z.object({
-  title: z.string().optional(),
-  message: z.string(),
-  variant: z.enum(["info", "success", "warning", "error"]),
-  duration: z.number().default(5000).optional().describe("Duration in milliseconds"),
-})
-
-export type ToastOptions = z.infer<typeof Schema>
+export type ToastOptions = z.infer<typeof TuiEvent.ToastShow.properties>
 
 export function Toast() {
   const toast = useToast()
@@ -37,7 +31,9 @@ export function Toast() {
           customBorderChars={SplitBorder.customBorderChars}
         >
           <Show when={current().title}>
-            <text attributes={TextAttributes.BOLD} marginBottom={1}>{current().title}</text>
+            <text attributes={TextAttributes.BOLD} marginBottom={1}>
+              {current().title}
+            </text>
           </Show>
           <text>{current().message}</text>
         </box>
@@ -55,7 +51,7 @@ function init() {
 
   return {
     show(options: ToastOptions) {
-      const parsedOptions = Schema.parse(options)
+      const parsedOptions = TuiEvent.ToastShow.properties.parse(options)
       const { duration, ...currentToast } = parsedOptions
       setStore("currentToast", currentToast)
       if (timeoutHandle) clearTimeout(timeoutHandle)

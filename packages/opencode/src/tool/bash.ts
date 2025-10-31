@@ -64,6 +64,7 @@ export const BashTool = Tool.define("bash", {
 
     const askPatterns = new Set<string>()
     for (const node of tree.rootNode.descendantsOfType("command")) {
+      if (!node) continue
       const command = []
       for (let i = 0; i < node.childCount; i++) {
         const child = node.child(i)

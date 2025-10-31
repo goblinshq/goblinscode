@@ -29,9 +29,14 @@ let server: Bun.Server<undefined>
 export const rpc = {
   async server(input: { port: number; hostname: string }) {
     if (server) await server.stop(true)
-    server = Server.listen(input)
-    return {
-      url: server.url.toString(),
+    try {
+      server = Server.listen(input)
+      return {
+        url: server.url.toString(),
+      }
+    } catch (e) {
+      console.error(e)
+      throw e
     }
   },
   async shutdown() {
