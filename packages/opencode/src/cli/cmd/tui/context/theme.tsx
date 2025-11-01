@@ -83,37 +83,36 @@ type ThemeJson = {
   theme: Record<keyof Theme, ColorValue>
 }
 
-export const THEMES: Record<string, Theme> = {
-  aura: resolveTheme(aura),
-  ayu: resolveTheme(ayu),
-  catppuccin: resolveTheme(catppuccin),
-  cobalt2: resolveTheme(cobalt2),
-  dracula: resolveTheme(dracula),
-  everforest: resolveTheme(everforest),
-  github: resolveTheme(github),
-  gruvbox: resolveTheme(gruvbox),
-  kanagawa: resolveTheme(kanagawa),
-  material: resolveTheme(material),
-  matrix: resolveTheme(matrix),
-  monokai: resolveTheme(monokai),
-  nord: resolveTheme(nord),
-  ["one-dark"]: resolveTheme(onedark),
-  opencode: resolveTheme(opencode),
-  palenight: resolveTheme(palenight),
-  rosepine: resolveTheme(rosepine),
-  solarized: resolveTheme(solarized),
-  synthwave84: resolveTheme(synthwave84),
-  tokyonight: resolveTheme(tokyonight),
-  vesper: resolveTheme(vesper),
-  zenburn: resolveTheme(zenburn),
+export const THEMES: Record<string, ThemeJson> = {
+  aura,
+  ayu,
+  catppuccin,
+  cobalt2,
+  dracula,
+  everforest,
+  github,
+  gruvbox,
+  kanagawa,
+  material,
+  matrix,
+  monokai,
+  nord,
+  ["one-dark"]: onedark,
+  opencode,
+  palenight,
+  rosepine,
+  solarized,
+  synthwave84,
+  tokyonight,
+  vesper,
+  zenburn,
 }
 
-function resolveTheme(theme: ThemeJson) {
+function resolveTheme(theme: ThemeJson, mode: "dark" | "light") {
   const defs = theme.defs ?? {}
   function resolveColor(c: ColorValue): RGBA {
     if (typeof c === "string") return c.startsWith("#") ? RGBA.fromHex(c) : resolveColor(defs[c])
-    // TODO: support light theme when opentui has the equivalent of lipgloss.AdaptiveColor
-    return resolveColor(c.light)
+    return resolveColor(c[mode])
   }
   return Object.fromEntries(
     Object.entries(theme.theme).map(([key, value]) => {
@@ -632,7 +631,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
     const [theme, setTheme] = createSignal(sync.data.config.theme ?? kv.get("theme", "opencode"))
 
     const values = createMemo(() => {
-      return THEMES[theme()] ?? THEMES.opencode
+      return resolveTheme(THEMES[theme()] ?? THEMES.opencode, props.mode)
     })
 
     return {

@@ -641,7 +641,7 @@ function UserMessage(props: {
         borderColor={color()}
         flexShrink={0}
       >
-        <text>{text()?.text}</text>
+        <text fg={theme.text}>{text()?.text}</text>
         <Show when={files().length}>
           <box flexDirection="row" paddingBottom={1} paddingTop={1} gap={1} flexWrap="wrap">
             <For each={files()}>
@@ -652,7 +652,7 @@ function UserMessage(props: {
                   return theme.secondary
                 })
                 return (
-                  <text>
+                  <text fg={theme.text}>
                     <span style={{ bg: bg(), fg: theme.background }}>
                       {" "}
                       {MIME_BADGE[file.mime] ?? file.mime}{" "}
@@ -667,7 +667,7 @@ function UserMessage(props: {
             </For>
           </box>
         </Show>
-        <text>
+        <text fg={theme.text}>
           {sync.data.config.username ?? "You"}{" "}
           <Show
             when={queued()}
@@ -782,7 +782,7 @@ function ReasoningPart(props: { part: ReasoningPart; message: AssistantMessage }
           paddingLeft={2}
           backgroundColor={theme.backgroundPanel}
         >
-          <text>{props.part.text.trim()}</text>
+          <text fg={theme.text}>{props.part.text.trim()}</text>
         </box>
       </box>
     </Show>
@@ -1131,6 +1131,7 @@ ToolRegistry.register<typeof EditTool>({
   container: "block",
   render(props) {
     const ctx = use()
+    const { theme } = useTheme()
 
     const style = createMemo(() => (ctx.width > 120 ? "split" : "stacked"))
 
@@ -1210,7 +1211,7 @@ ToolRegistry.register<typeof EditTool>({
         </ToolTitle>
         <Switch>
           <Match when={props.permission["diff"]}>
-            <text>{props.permission["diff"]?.trim()}</text>
+            <text fg={theme.text}>{props.permission["diff"]?.trim()}</text>
           </Match>
           <Match when={diff() && style() === "split"}>
             <box paddingLeft={1} flexDirection="row" gap={2}>
@@ -1237,6 +1238,7 @@ ToolRegistry.register<typeof PatchTool>({
   name: "patch",
   container: "block",
   render(props) {
+    const { theme } = useTheme()
     return (
       <>
         <ToolTitle icon="%" fallback="Preparing patch..." when={true}>
@@ -1244,7 +1246,7 @@ ToolRegistry.register<typeof PatchTool>({
         </ToolTitle>
         <Show when={props.output}>
           <box>
-            <text>{props.output?.trim()}</text>
+            <text fg={theme.text}>{props.output?.trim()}</text>
           </box>
         </Show>
       </>
