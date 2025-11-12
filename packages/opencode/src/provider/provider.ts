@@ -527,7 +527,8 @@ export namespace Provider {
       let suggestions: string[] = []
       const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, "")
       const levenshtein = (a: string, b: string) => {
-        const m = a.length, n = b.length
+        const m = a.length,
+          n = b.length
         const dp = Array.from({ length: m + 1 }, () => new Array<number>(n + 1).fill(0))
         for (let i = 0; i <= m; i++) dp[i][0] = i
         for (let j = 0; j <= n; j++) dp[0][j] = j
