@@ -402,7 +402,7 @@ export namespace SessionPrompt {
             ...part,
             state: {
               ...(part as any).state,
-              type: "completed",
+              status: "completed",
               ...result,
             },
           } as any)
