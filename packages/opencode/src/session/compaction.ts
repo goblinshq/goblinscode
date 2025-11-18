@@ -15,6 +15,7 @@ import { Log } from "../util/log"
 import { ProviderTransform } from "@/provider/transform"
 import { SessionProcessor } from "./processor"
 import { fn } from "@/util/fn"
+import { Agent } from "../agent/agent"
 
 export namespace SessionCompaction {
   const log = Log.create({ service: "session.compaction" })

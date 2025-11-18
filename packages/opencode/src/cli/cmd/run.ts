@@ -10,6 +10,7 @@ import { select } from "@clack/prompts"
 import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk"
 import { Server } from "../../server/server"
 import { Provider } from "../../provider/provider"
+import { Agent } from "../../agent/agent"
 
 const TOOL: Record<string, [string, string]> = {
   todowrite: ["Todo", UI.Style.TEXT_WARNING_BOLD],

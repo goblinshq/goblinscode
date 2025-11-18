@@ -34,6 +34,18 @@ import type { OpencodeClient } from "@opencode-ai/sdk"
 export namespace ACP {
   const log = Log.create({ service: "acp-agent" })
 
+  async function getDefaultAgent(): Promise<string> {
+    const cfg = await Config.get()
+    const defaultAgent = cfg.default_agent
+
+    if (defaultAgent) {
+      return defaultAgent
+    }
+
+    // Fallback to build agent
+    return "build"
+  }
+
   export async function init({ sdk }: { sdk: OpencodeClient }) {
     const model = await defaultModel({ sdk })
     return {
@@ -475,7 +487,7 @@ export namespace ACP {
           description: agent.description,
         }))
 
-      const defaultAgentName = await Agent.getDefault()
+      const defaultAgentName = await getDefaultAgent()
       const currentModeId = availableModes.find((m) => m.name === defaultAgentName)?.id ?? availableModes[0].id
 
       const mcpServers: Record<string, Config.Mcp> = {}
@@ -578,7 +590,7 @@ export namespace ACP {
       if (!current) {
         this.sessionManager.setModel(session.id, model)
       }
-      const agent = session.modeId ?? (await Agent.getDefault())
+      const agent = session.modeId ?? (await getDefaultAgent())
 
       const parts: Array<
         { type: "text"; text: string } | { type: "file"; url: string; filename: string; mime: string }
