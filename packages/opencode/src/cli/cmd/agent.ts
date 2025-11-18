@@ -6,6 +6,7 @@ import { Agent } from "../../agent/agent"
 import path from "path"
 import matter from "gray-matter"
 import { Instance } from "../../project/instance"
+import { EOL } from "os"
 
 const AgentCreateCommand = cmd({
   command: "create",
@@ -140,17 +141,7 @@ const AgentListCommand = cmd({
     await Instance.provide({
       directory: process.cwd(),
       async fn() {
-        UI.empty()
-        prompts.intro("Available agents")
-
         const agents = await Agent.list()
-
-        if (agents.length === 0) {
-          prompts.log.warn("No agents found")
-          prompts.outro("Done")
-          return
-        }
-
         const sortedAgents = agents.sort((a, b) => {
           if (a.builtIn !== b.builtIn) {
             return a.builtIn ? -1 : 1
@@ -159,18 +150,8 @@ const AgentListCommand = cmd({
         })
 
         for (const agent of sortedAgents) {
-          const type = agent.builtIn ? "built-in" : "custom"
-          const mode = agent.mode === "all" ? "primary/subagent" : agent.mode
-          const description = agent.description || "No description"
-
-          prompts.log.info(`${agent.name} (${type}, ${mode})`)
-          if (description) {
-            console.log(`  ${description}`)
-          }
-          console.log()
+          process.stdout.write(`${agent.name} (${agent.mode})${EOL}`)
         }
-
-        prompts.outro(`Found ${agents.length} agent${agents.length === 1 ? "" : "s"}`)
       },
     })
   },
