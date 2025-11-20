@@ -110,9 +110,20 @@ export function DialogPermission(props: DialogPermissionProps) {
   }
 
   return (
-    <box paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={2} gap={1} flexDirection="column">
+    <box
+      paddingLeft={2}
+      paddingRight={2}
+      paddingTop={1}
+      paddingBottom={2}
+      gap={1}
+      flexDirection="column"
+      border={["left"]}
+      borderColor={theme.warning}
+    >
       <box flexDirection="row" justifyContent="space-between">
-        <text attributes={TextAttributes.BOLD}>Permission Required</text>
+        <text attributes={TextAttributes.BOLD} fg={theme.warning}>
+          Permission Required
+        </text>
         <text fg={theme.textMuted}>esc to deny</text>
       </box>
 
