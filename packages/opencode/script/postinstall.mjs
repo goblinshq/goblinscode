@@ -97,12 +97,39 @@ function symlinkBinary(sourcePath, binaryName) {
   }
 }
 
+function cleanupTempDirectories() {
+  if (os.platform() !== "win32") return
+
+  try {
+    const globalNodeModules = path.join(process.env.APPDATA || "", "npm", "node_modules")
+    if (!fs.existsSync(globalNodeModules)) return
+
+    const entries = fs.readdirSync(globalNodeModules, { withFileTypes: true })
+    for (const entry of entries) {
+      if (entry.isDirectory() && entry.name.startsWith(".opencode-ai-")) {
+        const tempDir = path.join(globalNodeModules, entry.name)
+        try {
+          fs.rmSync(tempDir, { recursive: true, force: true })
+          console.log(`Cleaned up temporary directory: ${entry.name}`)
+        } catch (cleanupError) {
+          console.warn(`Failed to clean up ${entry.name}:`, cleanupError.message)
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to cleanup temporary directories:", error.message)
+  }
+}
+
 async function main() {
   try {
     if (os.platform() === "win32") {
       // On Windows, the .exe is already included in the package and bin field points to it
       // No postinstall setup needed
       console.log("Windows detected: binary setup not needed (using packaged .exe)")
+
+      // Clean up any leftover temporary directories from previous installations
+      cleanupTempDirectories()
       return
     }
 

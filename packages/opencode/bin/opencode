@@ -5,6 +5,29 @@ const fs = require("fs")
 const path = require("path")
 const os = require("os")
 
+function cleanupTempDirectories() {
+  if (os.platform() !== "win32") return
+  
+  try {
+    const globalNodeModules = path.join(process.env.APPDATA || "", "npm", "node_modules")
+    if (!fs.existsSync(globalNodeModules)) return
+    
+    const entries = fs.readdirSync(globalNodeModules, { withFileTypes: true })
+    for (const entry of entries) {
+      if (entry.isDirectory() && entry.name.startsWith(".opencode-ai-")) {
+        const tempDir = path.join(globalNodeModules, entry.name)
+        try {
+          fs.rmSync(tempDir, { recursive: true, force: true })
+        } catch (cleanupError) {
+          // Silently ignore cleanup errors
+        }
+      }
+    }
+  } catch (error) {
+    // Silently ignore cleanup errors
+  }
+}
+
 function run(target) {
   const result = childProcess.spawnSync(target, process.argv.slice(2), {
     stdio: "inherit",
@@ -19,6 +42,8 @@ function run(target) {
 
 const envPath = process.env.OPENCODE_BIN_PATH
 if (envPath) {
+  // Clean up temp directories before running
+  cleanupTempDirectories()
   run(envPath)
 }
 
@@ -80,5 +105,8 @@ if (!resolved) {
   )
   process.exit(1)
 }
+
+// Clean up temp directories before running
+cleanupTempDirectories()
 
 run(resolved)
