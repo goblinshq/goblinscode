@@ -10,8 +10,8 @@ const log = Log.create({ service: "vcs" })
 
 export namespace Vcs {
   export const Event = {
-    Changed: Bus.event(
-      "vcs.changed",
+    BranchChanged: Bus.event(
+      "vcs.branch.changed",
       z.object({
         branch: z.string().optional(),
       }),
@@ -58,7 +58,7 @@ export namespace Vcs {
           if (next !== current) {
             log.info("branch changed", { from: current, to: next })
             current = next
-            Bus.publish(Event.Changed, { branch: next })
+            Bus.publish(Event.BranchChanged, { branch: next })
           }
         })
         log.info("watching", { path: gitHead })
