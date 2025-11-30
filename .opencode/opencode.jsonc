@@ -10,39 +10,6 @@
         // "baseURL": "http://localhost:8080",
       },
     },
-    "github-copilot": {
-      // "api": "https://webhook.site/2e127807-907e-44ac-909c-7917d03da356",
-      "options": {
-        // "baseURL": "https://webhook.site/2e127807-907e-44ac-909c-7917d03da356",
-      },
-      "models": {
-        "gpt-5.1-codex": {
-          "options": {
-            "reasoning": {
-              "effort": "medium",
-              "summary": "detailed",
-            },
-            "include": ["reasoning.encrypted_content"],
-          },
-        },
-        "gpt-5.1-codex-mini": {
-          "options": {
-            // "reasoningEffort": "low",
-            // "reasoningSummary": "auto",
-            // "include": ["reasoning.encrypted_content"],
-          },
-        },
-        "gpt-5-codex": {
-          "options": {
-            "reasoning": {
-              "effort": "medium",
-              "summary": "detailed",
-            },
-            "include": ["reasoning.encrypted_content"],
-          },
-        },
-      },
-    },
   },
   "mcp": {
     "exa": {
