@@ -17,10 +17,6 @@ const { binaries } = await import("./build.ts")
 await $`mkdir -p ./dist/${pkg.name}`
 await $`cp -r ./bin ./dist/${pkg.name}/bin`
 await $`cp ./script/postinstall.mjs ./dist/${pkg.name}/postinstall.mjs`
-{
-  console.log(`smoke test: running node dist/${pkg.name}/bin/opencode --version`)
-  await $`OPENCODE_BIN_PATH=./dist/${hostTarget}/bin/opencode node ./dist/${pkg.name}/bin/opencode --version`
-}
 
 await Bun.file(`./dist/${pkg.name}/package.json`).write(
   JSON.stringify(
@@ -39,6 +35,10 @@ await Bun.file(`./dist/${pkg.name}/package.json`).write(
     2,
   ),
 )
+{
+  console.log(`smoke test: running node dist/${pkg.name}/bin/opencode --version`)
+  await $`OPENCODE_BIN_PATH=./dist/${hostTarget}/bin/opencode node ./dist/${pkg.name}/bin/opencode --version`
+}
 for (const [name] of Object.entries(binaries)) {
   try {
     process.chdir(`./dist/${name}`)
