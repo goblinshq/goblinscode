@@ -1110,6 +1110,7 @@ export type Config = {
         [key: string]: {
           id?: string
           name?: string
+          target?: string
           release_date?: string
           attachment?: boolean
           reasoning?: boolean
@@ -1355,6 +1356,7 @@ export type Command = {
 export type Model = {
   id: string
   name: string
+  target: string
   release_date: string
   attachment: boolean
   reasoning: boolean
