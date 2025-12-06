@@ -173,10 +173,8 @@ jobs:
           APPLE_API_KEY_PATH: ${{ runner.temp }}/apple-api-key.p8
         with:
           projectPath: packages/tauri
-          # uploadWorkflowArtifacts: true
+          uploadWorkflowArtifacts: true
           tauriScript: ${{ (startsWith(matrix.settings.host, 'ubuntu') && 'cargo tauri') || '' }}
           args: --target ${{ matrix.settings.target }}
           updaterJsonPreferNsis: true
-          # releaseDraft: true
-          # tagName: ${{ inputs.version }}
-          # releaseName: ${{ inputs.version }}
+          # releaseId: TODO
