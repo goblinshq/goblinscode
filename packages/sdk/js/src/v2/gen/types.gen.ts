@@ -1665,6 +1665,7 @@ export type Model = {
   headers: {
     [key: string]: string
   }
+  release_date: string
 }
 
 export type Provider = {
