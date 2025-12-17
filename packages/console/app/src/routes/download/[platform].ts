@@ -31,10 +31,7 @@ export async function GET({ params: { platform } }: APIEvent) {
   const downloadName = downloadNames[platform]
 
   const headers = new Headers(resp.headers)
-  if (downloadName) {
-    // Remove hardcoded file name
-    headers.set("content-disposition", `attachment; filename="${downloadName}"`)
-  }
+  if (downloadName) headers.set("content-disposition", `attachment; filename="${downloadName}"`)
 
   return new Response(resp.body, { ...resp, headers })
 }
