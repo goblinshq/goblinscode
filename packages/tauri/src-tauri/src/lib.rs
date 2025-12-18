@@ -19,7 +19,7 @@ struct ServerState(Arc<Mutex<Option<CommandChild>>>);
 #[derive(Clone)]
 struct LogState(Arc<Mutex<VecDeque<String>>>);
 
-const MAX_LOG_ENTRIES: usize = 1000; // Keep last 1000 log entries
+const MAX_LOG_ENTRIES: usize = 200;
 
 #[tauri::command]
 fn kill_sidecar(app: AppHandle) {
