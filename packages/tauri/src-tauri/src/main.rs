@@ -46,16 +46,17 @@ fn configure_display_backend() -> Option<String> {
 
     set_env_if_absent("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     Some(
-          "Wayland session detected without X11; leaving Wayland enabled (set WINIT_UNIX_BACKEND/GDK_BACKEND manually if needed)."
-              .into(),
-      )
+        "Wayland session detected without X11; leaving Wayland enabled (set WINIT_UNIX_BACKEND/GDK_BACKEND manually if needed)."
+            .into(),
+    )
 }
 
 fn main() {
     #[cfg(target_os = "linux")]
     {
-        let backend_note = configure_display_backend();
-        eprintln!("{backend_note}");
+        if let Some(backend_note) = configure_display_backend() {
+            eprintln!("{backend_note:?}");
+        }
     }
 
     opencode_lib::run()
