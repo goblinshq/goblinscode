@@ -8,7 +8,7 @@ export namespace Editor {
     const editor = process.env["VISUAL"] || process.env["EDITOR"]
     if (!editor) return
 
-    const filepath = join(process.cwd(), `.opencode-editor-${Date.now()}.md`)
+    const filepath = join(process.cwd(), `prompt-${Date.now()}.md`)
     await using _ = defer(async () => rm(filepath, { force: true }))
 
     await Bun.write(filepath, opts.value)
