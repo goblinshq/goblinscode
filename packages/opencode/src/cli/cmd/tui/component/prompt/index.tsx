@@ -167,6 +167,13 @@ export function Prompt(props: PromptProps) {
     if (!props.disabled) input.cursorColor = theme.text
   })
 
+  const lastUserMessage = createMemo(() => {
+    if (!props.sessionID) return undefined
+    const messages = sync.data.message[props.sessionID]
+    if (!messages) return undefined
+    return messages.findLast((m) => m.role === "user")
+  })
+
   const [store, setStore] = createStore<{
     prompt: PromptInfo
     mode: "normal" | "shell"
@@ -182,6 +189,26 @@ export function Prompt(props: PromptProps) {
     mode: "normal",
     extmarkToPartIndex: new Map(),
     interrupt: 0,
+  })
+
+  createEffect(() => {
+    const msg = lastUserMessage()
+    if (!msg) return
+
+    // Set agent from last message
+    if (msg.agent) {
+      local.agent.set(msg.agent)
+    }
+
+    // Set model from last message
+    if (msg.model) {
+      local.model.set(msg.model)
+    }
+
+    // Set effort from last message
+    if (msg.thinking?.effort) {
+      local.effort.set(msg.thinking.effort)
+    }
   })
 
   command.register(() => {
@@ -843,6 +870,11 @@ export function Prompt(props: PromptProps) {
                     return
                   }
                 }
+                if (keybind.match("effort_cycle", e)) {
+                  e.preventDefault()
+                  local.effort.cycle()
+                  return
+                }
                 if (store.mode === "normal") autocomplete.onKeyDown(e)
                 if (!autocomplete.visible) {
                   if (
@@ -958,6 +990,12 @@ export function Prompt(props: PromptProps) {
                     {local.model.parsed().model}
                   </text>
                   <text fg={theme.textMuted}>{local.model.parsed().provider}</text>
+                  <Show when={local.effort.current() !== "default"}>
+                    <text fg={theme.textMuted}>·</text>
+                    <text>
+                      <span style={{ fg: theme.warning, bold: true }}>{local.effort.current()}</span>
+                    </text>
+                  </Show>
                 </box>
               </Show>
             </box>

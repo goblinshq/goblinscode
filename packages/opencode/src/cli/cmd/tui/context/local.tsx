@@ -51,6 +51,29 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       }
     })
 
+    const effort = iife(() => {
+      const [effortStore, setEffortStore] = createStore<{
+        current: "default" | "medium" | "high"
+      }>({
+        current: "default",
+      })
+
+      return {
+        current() {
+          return effortStore.current
+        },
+        set(value: "default" | "medium" | "high") {
+          setEffortStore("current", value)
+        },
+        cycle() {
+          const levels: Array<"default" | "medium" | "high"> = ["default", "medium", "high"]
+          const currentIndex = levels.indexOf(effortStore.current)
+          const nextIndex = (currentIndex + 1) % levels.length
+          setEffortStore("current", levels[nextIndex])
+        },
+      }
+    })
+
     const agent = iife(() => {
       const agents = createMemo(() => sync.data.agent.filter((x) => x.mode !== "subagent" && !x.hidden))
       const [agentStore, setAgentStore] = createStore<{
@@ -333,6 +356,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       model,
       agent,
       mcp,
+      effort,
     }
     return result
   },

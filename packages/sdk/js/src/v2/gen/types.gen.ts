@@ -90,6 +90,9 @@ export type UserMessage = {
   tools?: {
     [key: string]: boolean
   }
+  thinking?: {
+    effort: "default" | "medium" | "high"
+  }
 }
 
 export type ProviderAuthError = {
@@ -969,6 +972,10 @@ export type KeybindsConfig = {
    * Previous agent
    */
   agent_cycle_reverse?: string
+  /**
+   * Cycle thinking effort level
+   */
+  effort_cycle?: string
   /**
    * Clear input field
    */
@@ -2944,6 +2951,9 @@ export type SessionPromptData = {
       [key: string]: boolean
     }
     system?: string
+    thinking?: {
+      effort: "default" | "medium" | "high"
+    }
     parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
   }
   path: {
@@ -3127,6 +3137,9 @@ export type SessionPromptAsyncData = {
       [key: string]: boolean
     }
     system?: string
+    thinking?: {
+      effort: "default" | "medium" | "high"
+    }
     parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
   }
   path: {
