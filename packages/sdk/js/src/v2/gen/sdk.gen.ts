@@ -1229,7 +1229,7 @@ export class Session extends HeyApiClient {
       }
       system?: string
       thinking?: {
-        effort: "default" | "medium" | "high"
+        effort: "default" | "high" | "ultra"
       }
       parts?: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
     },
@@ -1319,7 +1319,7 @@ export class Session extends HeyApiClient {
       }
       system?: string
       thinking?: {
-        effort: "default" | "medium" | "high"
+        effort: "default" | "high" | "ultra"
       }
       parts?: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
     },
@@ -1371,7 +1371,7 @@ export class Session extends HeyApiClient {
       arguments?: string
       command?: string
       thinking?: {
-        effort: "default" | "medium" | "high"
+        effort: "default" | "high" | "ultra"
       }
     },
     options?: Options<never, ThrowOnError>,

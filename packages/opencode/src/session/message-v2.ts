@@ -287,7 +287,7 @@ export namespace MessageV2 {
     sessionID: z.string(),
   })
 
-  export const Thinking = z.object({ effort: z.enum(["default", "medium", "high"]) })
+  export const Thinking = z.object({ effort: z.enum(["default", "high", "ultra"]) })
   export type Thinking = z.infer<typeof Thinking>
 
   export const User = Base.extend({

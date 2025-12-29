@@ -1009,10 +1009,12 @@ export function Prompt(props: PromptProps) {
                     {local.model.parsed().model}
                   </text>
                   <text fg={theme.textMuted}>{local.model.parsed().provider}</text>
-                  <Show when={showEffort()}>
+                  <Show when={showEffort() || local.effort.animationFrame()}>
                     <text fg={theme.textMuted}>·</text>
                     <text>
-                      <span style={{ fg: theme.warning, bold: true }}>{local.effort.current()}</span>
+                      <span style={{ fg: theme.warning, bold: true }}>
+                        {local.effort.animationFrame() ?? local.effort.current()}
+                      </span>
                     </text>
                   </Show>
                 </box>

@@ -2048,6 +2048,16 @@
                   "system": {
                     "type": "string"
                   },
+                  "thinking": {
+                    "type": "object",
+                    "properties": {
+                      "effort": {
+                        "type": "string",
+                        "enum": ["default", "high", "ultra"]
+                      }
+                    },
+                    "required": ["effort"]
+                  },
                   "parts": {
                     "type": "array",
                     "items": {
@@ -2420,6 +2430,16 @@
                   "system": {
                     "type": "string"
                   },
+                  "thinking": {
+                    "type": "object",
+                    "properties": {
+                      "effort": {
+                        "type": "string",
+                        "enum": ["default", "high", "ultra"]
+                      }
+                    },
+                    "required": ["effort"]
+                  },
                   "parts": {
                     "type": "array",
                     "items": {
@@ -2541,6 +2561,16 @@
                   },
                   "command": {
                     "type": "string"
+                  },
+                  "thinking": {
+                    "type": "object",
+                    "properties": {
+                      "effort": {
+                        "type": "string",
+                        "enum": ["default", "high", "ultra"]
+                      }
+                    },
+                    "required": ["effort"]
                   }
                 },
                 "required": ["arguments", "command"]
@@ -5265,6 +5295,16 @@
             "additionalProperties": {
               "type": "boolean"
             }
+          },
+          "thinking": {
+            "type": "object",
+            "properties": {
+              "effort": {
+                "type": "string",
+                "enum": ["default", "high", "ultra"]
+              }
+            },
+            "required": ["effort"]
           }
         },
         "required": ["id", "sessionID", "role", "time", "agent", "model"]
@@ -7494,6 +7534,11 @@
           "agent_cycle_reverse": {
             "description": "Previous agent",
             "default": "shift+tab",
+            "type": "string"
+          },
+          "effort_cycle": {
+            "description": "Cycle thinking effort level",
+            "default": "ctrl+t",
             "type": "string"
           },
           "input_clear": {

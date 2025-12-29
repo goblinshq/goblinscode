@@ -91,7 +91,7 @@ export type UserMessage = {
     [key: string]: boolean
   }
   thinking?: {
-    effort: "default" | "medium" | "high"
+    effort: "default" | "high" | "ultra"
   }
 }
 
@@ -2952,7 +2952,7 @@ export type SessionPromptData = {
     }
     system?: string
     thinking?: {
-      effort: "default" | "medium" | "high"
+      effort: "default" | "high" | "ultra"
     }
     parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
   }
@@ -3138,7 +3138,7 @@ export type SessionPromptAsyncData = {
     }
     system?: string
     thinking?: {
-      effort: "default" | "medium" | "high"
+      effort: "default" | "high" | "ultra"
     }
     parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
   }
@@ -3184,7 +3184,7 @@ export type SessionCommandData = {
     arguments: string
     command: string
     thinking?: {
-      effort: "default" | "medium" | "high"
+      effort: "default" | "high" | "ultra"
     }
   }
   path: {

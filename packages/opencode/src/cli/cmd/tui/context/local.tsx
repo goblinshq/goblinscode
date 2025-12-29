@@ -53,23 +53,91 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
     const effort = iife(() => {
       const [effortStore, setEffortStore] = createStore<{
-        current: "default" | "medium" | "high"
+        current: "default" | "high" | "ultra"
+        animationFrame: string | null
       }>({
         current: "default",
+        animationFrame: null,
       })
 
       return {
         current() {
           return effortStore.current
         },
-        set(value: "default" | "medium" | "high") {
+        animationFrame() {
+          return effortStore.animationFrame
+        },
+        set(value: "default" | "high" | "ultra") {
           setEffortStore("current", value)
         },
         cycle() {
-          const levels: Array<"default" | "medium" | "high"> = ["default", "medium", "high"]
+          const levels: Array<"default" | "high" | "ultra"> = ["default", "high", "ultra"]
           const currentIndex = levels.indexOf(effortStore.current)
           const nextIndex = (currentIndex + 1) % levels.length
-          setEffortStore("current", levels[nextIndex])
+          const next = levels[nextIndex]
+          if (next === "high") {
+            const bars = ["▁", "▂", "▃", "▄"]
+            const word = "high"
+            const frames: Array<{ text: string; delay: number }> = [
+              { text: bars[0], delay: 40 },
+              { text: bars.slice(0, 2).join(""), delay: 40 },
+              { text: bars.slice(0, 3).join(""), delay: 40 },
+              { text: bars.join(""), delay: 40 },
+              { text: word[0] + bars.slice(1).join(""), delay: 20 },
+              { text: word.slice(0, 2) + bars.slice(2).join(""), delay: 20 },
+              { text: word.slice(0, 3) + bars[3], delay: 20 },
+              { text: word, delay: 20 },
+            ]
+            let index = 0
+            setEffortStore("animationFrame", frames[index].text)
+            const tick = () => {
+              const delay = frames[index].delay
+              setTimeout(() => {
+                index++
+                if (index >= frames.length) {
+                  setEffortStore("animationFrame", null)
+                  setEffortStore("current", next)
+                } else {
+                  setEffortStore("animationFrame", frames[index].text)
+                  tick()
+                }
+              }, delay)
+            }
+            tick()
+          } else if (next === "ultra") {
+            const bars = ["▄", "▅", "▆", "▇", "█"]
+            const word = "ultra"
+            const frames: Array<{ text: string; delay: number }> = [
+              { text: bars[0], delay: 40 },
+              { text: bars.slice(0, 2).join(""), delay: 40 },
+              { text: bars.slice(0, 3).join(""), delay: 40 },
+              { text: bars.slice(0, 4).join(""), delay: 40 },
+              { text: bars.join(""), delay: 40 },
+              { text: word[0] + bars.slice(1).join(""), delay: 20 },
+              { text: word.slice(0, 2) + bars.slice(2).join(""), delay: 20 },
+              { text: word.slice(0, 3) + bars.slice(3).join(""), delay: 20 },
+              { text: word.slice(0, 4) + bars[4], delay: 20 },
+              { text: word, delay: 20 },
+            ]
+            let index = 0
+            setEffortStore("animationFrame", frames[index].text)
+            const tick = () => {
+              const delay = frames[index].delay
+              setTimeout(() => {
+                index++
+                if (index >= frames.length) {
+                  setEffortStore("animationFrame", null)
+                  setEffortStore("current", next)
+                } else {
+                  setEffortStore("animationFrame", frames[index].text)
+                  tick()
+                }
+              }, delay)
+            }
+            tick()
+          } else {
+            setEffortStore("current", next)
+          }
         },
       }
     })

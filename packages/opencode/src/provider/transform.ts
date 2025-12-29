@@ -291,7 +291,7 @@ export namespace ProviderTransform {
         return {
           thinking: {
             type: "enabled",
-            budgetTokens: thinking.effort === "medium" ? 16000 : 31999,
+            budgetTokens: thinking.effort === "high" ? 16000 : 31999,
           },
         }
 
@@ -312,7 +312,7 @@ export namespace ProviderTransform {
           return {
             thinkingConfig: {
               includeThoughts: true,
-              thinkingBudget: thinking.effort === "medium" ? 8192 : 24576,
+              thinkingBudget: thinking.effort === "high" ? 8192 : 24576,
             },
           }
         }
@@ -335,7 +335,7 @@ export namespace ProviderTransform {
             type: "enabled",
           },
         }
-        if (thinking.effort === "medium") {
+        if (thinking.effort === "high") {
           res["thinking"]["budgetTokens"] = 8192
         }
         return res
