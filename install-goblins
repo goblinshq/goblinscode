@@ -6,19 +6,12 @@ GREEN='\033[0;32m'
 MUTED='\033[0;2m'
 NC='\033[0m'
 
-REPO="https://github.com/Karavil/opencode.git"
-BRANCH="goblins"
+REPO="Karavil/opencode"
+RELEASE_TAG="goblins-latest"
 INSTALL_DIR="$HOME/.opencode/bin"
-TMP_DIR="${TMPDIR:-/tmp}/goblins_install_$$"
+BINARY_NAME="gcode"
 
-echo -e "${MUTED}Installing opencode from ${NC}goblins${MUTED} branch...${NC}"
-
-# Check for bun
-if ! command -v bun >/dev/null 2>&1; then
-    echo -e "${RED}Error: bun is required but not installed.${NC}"
-    echo -e "${MUTED}Install bun: curl -fsSL https://bun.sh/install | bash${NC}"
-    exit 1
-fi
+echo -e "${MUTED}Installing ${NC}gcode${MUTED}...${NC}"
 
 # Detect OS and arch
 os=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -33,53 +26,88 @@ esac
 if [[ "$arch" == "aarch64" ]]; then arch="arm64"; fi
 if [[ "$arch" == "x86_64" ]]; then arch="x64"; fi
 
-target="opencode-${os}-${arch}"
+# Handle Rosetta on macOS
+if [[ "$os" == "darwin" && "$arch" == "x64" ]]; then
+    rosetta=$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)
+    if [[ "$rosetta" == "1" ]]; then
+        arch="arm64"
+    fi
+fi
 
-# Clone and build
-mkdir -p "$TMP_DIR"
-echo -e "${MUTED}Cloning ${NC}$BRANCH${MUTED} branch...${NC}"
-git clone --depth 1 --branch "$BRANCH" "$REPO" "$TMP_DIR/opencode" 2>/dev/null
+target="${os}-${arch}"
+asset_name="gcode-${target}"
+url="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/${asset_name}"
 
-cd "$TMP_DIR/opencode"
-echo -e "${MUTED}Installing dependencies...${NC}"
-bun install --frozen-lockfile
+echo -e "${MUTED}Downloading ${NC}${asset_name}${MUTED}...${NC}"
 
-cd packages/opencode
-echo -e "${MUTED}Building binary...${NC}"
-bun script/build.ts --single --skip-install
-
-binary="dist/${target}/bin/opencode"
-
-if [[ ! -f "$binary" ]]; then
-    echo -e "${RED}Build failed: binary not found at $binary${NC}"
+# Check if release exists
+if ! curl -sfI "$url" >/dev/null 2>&1; then
+    echo -e "${RED}Binary not found: $url${NC}"
+    echo -e "${MUTED}Available binaries may not include your platform yet.${NC}"
+    echo -e "${MUTED}Falling back to building from source...${NC}"
+    
+    # Fallback to source build
+    if ! command -v bun >/dev/null 2>&1; then
+        echo -e "${RED}Error: bun is required for source build.${NC}"
+        echo -e "${MUTED}Install bun: curl -fsSL https://bun.sh/install | bash${NC}"
+        exit 1
+    fi
+    
+    TMP_DIR="${TMPDIR:-/tmp}/goblins_install_$$"
+    mkdir -p "$TMP_DIR"
+    git clone --depth 1 --branch goblins "https://github.com/${REPO}.git" "$TMP_DIR/opencode" 2>/dev/null
+    cd "$TMP_DIR/opencode"
+    bun install --frozen-lockfile
+    cd packages/opencode
+    bun script/build.ts --single --skip-install
+    binary="dist/opencode-${target}/bin/opencode"
+    if [[ "$os" == "darwin" ]]; then codesign -s - "$binary"; fi
+    mkdir -p "$INSTALL_DIR"
+    cp "$binary" "$INSTALL_DIR/$BINARY_NAME"
+    chmod 755 "$INSTALL_DIR/$BINARY_NAME"
+    cd "$HOME"
     rm -rf "$TMP_DIR"
-    exit 1
+else
+    # Download pre-built binary
+    mkdir -p "$INSTALL_DIR"
+    curl -sfL "$url" -o "$INSTALL_DIR/$BINARY_NAME"
+    chmod 755 "$INSTALL_DIR/$BINARY_NAME"
+    
+    # Sign on macOS
+    if [[ "$os" == "darwin" ]]; then
+        echo -e "${MUTED}Signing binary...${NC}"
+        codesign -s - "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
+    fi
 fi
 
-# Sign on macOS
-if [[ "$os" == "darwin" ]]; then
-    echo -e "${MUTED}Signing binary...${NC}"
-    codesign -s - "$binary"
-fi
-
-# Install
-mkdir -p "$INSTALL_DIR"
-cp "$binary" "$INSTALL_DIR/opencode"
-chmod 755 "$INSTALL_DIR/opencode"
-
-# Cleanup
-rm -rf "$TMP_DIR"
-
-version=$("$INSTALL_DIR/opencode" --version)
+version=$("$INSTALL_DIR/$BINARY_NAME" --version 2>/dev/null || echo "unknown")
 echo -e ""
-echo -e "${GREEN}Successfully installed opencode ${NC}$version"
+echo -e "${GREEN}Successfully installed $BINARY_NAME ${NC}$version"
 echo -e ""
 
-# Add to PATH if needed
-if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-    echo -e "${MUTED}Add to your shell config:${NC}"
-    echo -e "  export PATH=$INSTALL_DIR:\$PATH"
-    echo -e ""
+# Add to PATH in shell config if needed
+PATH_EXPORT="export PATH=$INSTALL_DIR:\$PATH"
+SHELL_CONFIG=""
+
+if [[ -f "$HOME/.zshrc" ]]; then
+    SHELL_CONFIG="$HOME/.zshrc"
+elif [[ -f "$HOME/.bashrc" ]]; then
+    SHELL_CONFIG="$HOME/.bashrc"
+elif [[ -f "$HOME/.bash_profile" ]]; then
+    SHELL_CONFIG="$HOME/.bash_profile"
 fi
 
-echo -e "${MUTED}Run: ${NC}opencode"
+if [[ -n "$SHELL_CONFIG" ]]; then
+    if ! grep -q "$INSTALL_DIR" "$SHELL_CONFIG"; then
+        echo -e "\n# gcode (opencode goblins)" >> "$SHELL_CONFIG"
+        echo "$PATH_EXPORT" >> "$SHELL_CONFIG"
+        echo -e "${MUTED}Added ${NC}$INSTALL_DIR${MUTED} to PATH in ${NC}$SHELL_CONFIG"
+    fi
+else
+    echo -e "${MUTED}No shell config found. Add to your shell config:${NC}"
+    echo -e "  $PATH_EXPORT"
+fi
+
+echo -e ""
+echo -e "${MUTED}Run: ${NC}$BINARY_NAME"
+echo -e "${MUTED}Update: ${NC}curl -fsSL https://raw.githubusercontent.com/${REPO}/goblins/install-goblins | bash"

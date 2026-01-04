@@ -1,0 +1,88 @@
+name: goblins
+
+on:
+  push:
+    branches:
+      - goblins
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: darwin-arm64
+          - os: macos-13
+            target: darwin-x64
+          - os: ubuntu-latest
+            target: linux-x64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build binary
+        run: bun script/build.ts --single --skip-install
+        working-directory: packages/opencode
+
+      - name: Sign binary (macOS)
+        if: runner.os == 'macOS'
+        run: codesign -s - packages/opencode/dist/opencode-${{ matrix.target }}/bin/opencode
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gcode-${{ matrix.target }}
+          path: packages/opencode/dist/opencode-${{ matrix.target }}/bin/opencode
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          for dir in artifacts/gcode-*/; do
+            target=$(basename "$dir" | sed 's/gcode-//')
+            cp "$dir/opencode" "release/gcode-$target"
+            chmod +x "release/gcode-$target"
+          done
+          ls -la release/
+
+      - name: Get version
+        id: version
+        run: echo "version=$(date +%Y%m%d%H%M)" >> $GITHUB_OUTPUT
+
+      - name: Create/Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: goblins-latest
+          name: Goblins Latest
+          body: |
+            Latest goblins build - auto-updated on push to goblins branch.
+
+            Install: `curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/goblins/install-goblins | bash`
+          files: release/*
+          prerelease: true
+          make_latest: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
