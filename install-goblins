@@ -40,44 +40,19 @@ url="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/${asset_name}"
 
 echo -e "${MUTED}Downloading ${NC}${asset_name}${MUTED}...${NC}"
 
-# Check if release exists
-if ! curl -sfI "$url" >/dev/null 2>&1; then
-    echo -e "${RED}Binary not found: $url${NC}"
-    echo -e "${MUTED}Available binaries may not include your platform yet.${NC}"
-    echo -e "${MUTED}Falling back to building from source...${NC}"
-    
-    # Fallback to source build
-    if ! command -v bun >/dev/null 2>&1; then
-        echo -e "${RED}Error: bun is required for source build.${NC}"
-        echo -e "${MUTED}Install bun: curl -fsSL https://bun.sh/install | bash${NC}"
-        exit 1
-    fi
-    
-    TMP_DIR="${TMPDIR:-/tmp}/goblins_install_$$"
-    mkdir -p "$TMP_DIR"
-    git clone --depth 1 --branch goblins "https://github.com/${REPO}.git" "$TMP_DIR/opencode" 2>/dev/null
-    cd "$TMP_DIR/opencode"
-    bun install --frozen-lockfile
-    cd packages/opencode
-    bun script/build.ts --single --skip-install
-    binary="dist/opencode-${target}/bin/opencode"
-    if [[ "$os" == "darwin" ]]; then codesign -s - "$binary"; fi
-    mkdir -p "$INSTALL_DIR"
-    cp "$binary" "$INSTALL_DIR/$BINARY_NAME"
-    chmod 755 "$INSTALL_DIR/$BINARY_NAME"
-    cd "$HOME"
-    rm -rf "$TMP_DIR"
-else
-    # Download pre-built binary
-    mkdir -p "$INSTALL_DIR"
-    curl -sfL "$url" -o "$INSTALL_DIR/$BINARY_NAME"
-    chmod 755 "$INSTALL_DIR/$BINARY_NAME"
-    
-    # Sign on macOS
-    if [[ "$os" == "darwin" ]]; then
-        echo -e "${MUTED}Signing binary...${NC}"
-        codesign -s - "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
-    fi
+# Download pre-built binary
+mkdir -p "$INSTALL_DIR"
+if ! curl -sfL "$url" -o "$INSTALL_DIR/$BINARY_NAME"; then
+    echo -e "${RED}Failed to download binary from: $url${NC}"
+    echo -e "${MUTED}Available platforms: darwin-arm64, linux-x64, linux-arm64${NC}"
+    exit 1
+fi
+chmod 755 "$INSTALL_DIR/$BINARY_NAME"
+
+# Sign on macOS
+if [[ "$os" == "darwin" ]]; then
+    echo -e "${MUTED}Signing binary...${NC}"
+    codesign -s - "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
 fi
 
 version=$("$INSTALL_DIR/$BINARY_NAME" --version 2>/dev/null || echo "unknown")
