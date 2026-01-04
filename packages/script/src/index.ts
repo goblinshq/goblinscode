@@ -29,7 +29,8 @@ const IS_PREVIEW = CHANNEL !== "latest"
 const VERSION = await (async () => {
   if (env.OPENCODE_VERSION) return env.OPENCODE_VERSION
   const date = new Date().toISOString().slice(0, 10)
-  return `goblins-${date}`
+  const hash = (await $`git rev-parse --short HEAD`.text()).trim()
+  return `goblins-${date}-${hash}`
 })()
 
 export const Script = {

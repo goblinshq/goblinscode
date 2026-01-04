@@ -78,7 +78,7 @@ jobs:
           body: |
             Latest goblins build - auto-updated on push to goblins branch.
 
-            Install: `curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/goblins/install-goblins | bash`
+            Install: `curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/goblins/install | bash`
           files: release/*
           prerelease: true
           make_latest: false
