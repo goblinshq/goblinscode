@@ -119,10 +119,10 @@ export namespace Installation {
   }
 
   export async function upgrade(method: Method, target: string) {
-    let cmd
+    let cmd: ReturnType<typeof $>
     switch (method) {
       case "curl":
-        cmd = $`curl -fsSL https://opencode.ai/install | bash`.env({
+        cmd = $`curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/goblins/install | bash`.env({
           ...process.env,
           VERSION: target,
         })
@@ -195,11 +195,11 @@ export namespace Installation {
         .then((data: any) => data.version)
     }
 
-    return fetch("https://api.github.com/repos/anomalyco/opencode/releases/latest")
+    return fetch("https://api.github.com/repos/Karavil/opencode/releases/tags/goblins-latest")
       .then((res) => {
         if (!res.ok) throw new Error(res.statusText)
         return res.json()
       })
-      .then((data: any) => data.tag_name.replace(/^v/, ""))
+      .then((data: any) => data.tag_name.replace(/^goblins-/, ""))
   }
 }
