@@ -25,6 +25,7 @@ This is **gcode** - the Goblins team's customized fork of [OpenCode](https://ope
 - Custom GOBLINS branding in the TUI
 - Auto-updates from our fork's releases
 - Pre-built binaries for darwin-arm64, linux-x64, linux-arm64
+- Performance fix: 109x faster file tree for large repos (8.6s → 79ms on 42k files)
 
 ## Syncing with Upstream
 
