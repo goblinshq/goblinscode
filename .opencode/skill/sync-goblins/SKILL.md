@@ -5,43 +5,43 @@ description: use this when asked to sync goblins with upstream, update the fork,
 
 # Sync Goblins Fork with Upstream
 
-This skill syncs the `goblins` branch with the latest upstream `dev` branch from `sst/opencode`.
+This skill syncs the `main` branch with the latest upstream `dev` branch from `sst/opencode`.
 
 ## Overview
 
-The goblins fork (`Karavil/opencode`) is our internal fork of opencode with custom patches:
+The goblins fork (`goblinshq/goblinscode`) is our internal fork of opencode with custom patches:
 
 - Custom "GOBLINS" logo in the TUI
 - Auto-update from our fork's releases
-- Install script at `https://raw.githubusercontent.com/Karavil/opencode/goblins/install`
+- Install script at `https://raw.githubusercontent.com/goblinshq/goblinscode/main/install`
 - Pre-built binaries via GitHub Actions
 
 ## Sync Process
 
-### 1. Ensure you're on the goblins branch and fetch upstream
+### 1. Ensure you're on the main branch and fetch upstream
 
 ```bash
 cd /Users/alp/opencode
-git checkout goblins
+git checkout main
 git fetch origin dev
 ```
 
 ### 2. Check how far behind we are
 
 ```bash
-git log --oneline goblins..origin/dev | head -20
+git log --oneline main..origin/dev | head -20
 ```
 
 ### 3. Show our goblins-specific commits (these will be rebased)
 
 ```bash
-git log --oneline origin/dev..goblins
+git log --oneline origin/dev..main
 ```
 
-### 4. Rebase goblins onto upstream dev
+### 4. Merge upstream dev into main
 
 ```bash
-git rebase origin/dev
+git merge origin/dev -m "Merge upstream sst/opencode dev branch"
 ```
 
 ### 5. Handle Conflicts
@@ -50,14 +50,14 @@ If conflicts occur, they're typically in these files:
 
 **`packages/opencode/src/installation/index.ts`** - The update/upgrade logic
 
-- Always use our Karavil/opencode URLs:
-  - Upgrade URL: `https://raw.githubusercontent.com/Karavil/opencode/goblins/install`
-  - Latest check URL: `https://api.github.com/repos/Karavil/opencode/releases/tags/goblins-latest`
+- Always use our goblinshq/goblinscode URLs:
+  - Upgrade URL: `https://raw.githubusercontent.com/goblinshq/goblinscode/main/install`
+  - Latest check URL: `https://api.github.com/repos/goblinshq/goblinscode/releases/tags/goblins-latest`
 - Remove any branching logic (no `CHANNEL === "goblins"` checks - we ARE goblins)
 
 **`install`** - The install script
 
-- Keep our simple gcode installer (downloads from Karavil/opencode releases)
+- Keep our simple gcode installer (downloads from goblinshq/goblinscode releases)
 - Don't merge in the upstream install script complexity
 
 **`packages/opencode/src/cli/cmd/tui/component/logo.tsx`** - The TUI logo
@@ -74,27 +74,27 @@ To resolve conflicts:
 # Edit the conflicted file to keep our goblins-specific code
 # Then:
 git add <file>
-GIT_EDITOR="true" git rebase --continue
+git commit
 ```
 
-### 6. Force push to fork
+### 6. Push to fork
 
 ```bash
-git push fork goblins --force
+git push fork main
 ```
 
 ### 7. Wait for GitHub Actions build
 
 ```bash
-gh run list --repo Karavil/opencode --workflow goblins --limit 1 --json databaseId --jq '.[0].databaseId'
+gh run list --repo goblinshq/goblinscode --workflow goblins --limit 1 --json databaseId --jq '.[0].databaseId'
 # Then watch:
-gh run watch <run-id> --repo Karavil/opencode --exit-status
+gh run watch <run-id> --repo goblinshq/goblinscode --exit-status
 ```
 
 ### 8. Test the install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/goblins/install | bash
+curl -fsSL https://raw.githubusercontent.com/goblinshq/goblinscode/main/install | bash
 gcode --version
 ```
 
