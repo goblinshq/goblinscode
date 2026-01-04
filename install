@@ -52,7 +52,12 @@ chmod 755 "$INSTALL_DIR/$BINARY_NAME"
 # Remove quarantine/provenance attributes and re-sign on macOS
 if [[ "$os" == "darwin" ]]; then
     xattr -cr "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
-    codesign -s - "$INSTALL_DIR/$BINARY_NAME" --force 2>/dev/null || true
+    if ! codesign -s - "$INSTALL_DIR/$BINARY_NAME" --force 2>/dev/null; then
+        echo -e "${RED}Warning: Failed to sign binary. gcode may not run.${NC}"
+        echo -e "${MUTED}Install Xcode Command Line Tools and re-run this installer:${NC}"
+        echo -e "  xcode-select --install"
+        echo -e ""
+    fi
 fi
 
 version=$("$INSTALL_DIR/$BINARY_NAME" --version 2>/dev/null || echo "unknown")
