@@ -49,6 +49,12 @@ if ! curl -sfL "$url" -o "$INSTALL_DIR/$BINARY_NAME"; then
 fi
 chmod 755 "$INSTALL_DIR/$BINARY_NAME"
 
+# Remove quarantine/provenance attributes and re-sign on macOS
+if [[ "$os" == "darwin" ]]; then
+    xattr -cr "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
+    codesign -s - "$INSTALL_DIR/$BINARY_NAME" --force 2>/dev/null || true
+fi
+
 version=$("$INSTALL_DIR/$BINARY_NAME" --version 2>/dev/null || echo "unknown")
 echo -e ""
 echo -e "${GREEN}Successfully installed $BINARY_NAME ${NC}$version"
