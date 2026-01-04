@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+MUTED='\033[0;2m'
+NC='\033[0m'
+
+REPO="https://github.com/Karavil/opencode.git"
+BRANCH="goblins"
+INSTALL_DIR="$HOME/.opencode/bin"
+TMP_DIR="${TMPDIR:-/tmp}/goblins_install_$$"
+
+echo -e "${MUTED}Installing opencode from ${NC}goblins${MUTED} branch...${NC}"
+
+# Check for bun
+if ! command -v bun >/dev/null 2>&1; then
+    echo -e "${RED}Error: bun is required but not installed.${NC}"
+    echo -e "${MUTED}Install bun: curl -fsSL https://bun.sh/install | bash${NC}"
+    exit 1
+fi
+
+# Detect OS and arch
+os=$(uname -s | tr '[:upper:]' '[:lower:]')
+arch=$(uname -m)
+
+case "$os" in
+    darwin) ;;
+    linux) ;;
+    *) echo -e "${RED}Unsupported OS: $os${NC}"; exit 1 ;;
+esac
+
+if [[ "$arch" == "aarch64" ]]; then arch="arm64"; fi
+if [[ "$arch" == "x86_64" ]]; then arch="x64"; fi
+
+target="opencode-${os}-${arch}"
+
+# Clone and build
+mkdir -p "$TMP_DIR"
+echo -e "${MUTED}Cloning ${NC}$BRANCH${MUTED} branch...${NC}"
+git clone --depth 1 --branch "$BRANCH" "$REPO" "$TMP_DIR/opencode" 2>/dev/null
+
+cd "$TMP_DIR/opencode"
+echo -e "${MUTED}Installing dependencies...${NC}"
+bun install --frozen-lockfile
+
+cd packages/opencode
+echo -e "${MUTED}Building binary...${NC}"
+bun script/build.ts --single --skip-install
+
+binary="dist/${target}/bin/opencode"
+
+if [[ ! -f "$binary" ]]; then
+    echo -e "${RED}Build failed: binary not found at $binary${NC}"
+    rm -rf "$TMP_DIR"
+    exit 1
+fi
+
+# Sign on macOS
+if [[ "$os" == "darwin" ]]; then
+    echo -e "${MUTED}Signing binary...${NC}"
+    codesign -s - "$binary"
+fi
+
+# Install
+mkdir -p "$INSTALL_DIR"
+cp "$binary" "$INSTALL_DIR/opencode"
+chmod 755 "$INSTALL_DIR/opencode"
+
+# Cleanup
+rm -rf "$TMP_DIR"
+
+version=$("$INSTALL_DIR/opencode" --version)
+echo -e ""
+echo -e "${GREEN}Successfully installed opencode ${NC}$version"
+echo -e ""
+
+# Add to PATH if needed
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+    echo -e "${MUTED}Add to your shell config:${NC}"
+    echo -e "  export PATH=$INSTALL_DIR:\$PATH"
+    echo -e ""
+fi
+
+echo -e "${MUTED}Run: ${NC}opencode"
