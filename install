@@ -6,7 +6,7 @@ GREEN='\033[0;32m'
 MUTED='\033[0;2m'
 NC='\033[0m'
 
-REPO="Karavil/opencode"
+REPO="goblinshq/goblinscode"
 RELEASE_TAG="goblins-latest"
 INSTALL_DIR="$HOME/.opencode/bin"
 BINARY_NAME="gcode"
@@ -90,4 +90,4 @@ fi
 
 echo -e ""
 echo -e "${MUTED}Run: ${NC}$BINARY_NAME"
-echo -e "${MUTED}Update: ${NC}curl -fsSL https://raw.githubusercontent.com/${REPO}/goblins/install | bash"
+echo -e "${MUTED}Update: ${NC}curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install | bash"
