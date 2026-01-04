@@ -1,6 +1,6 @@
 ---
-name: sync-goblins
-description: use this when asked to sync goblins with upstream, update the fork, or pull latest changes from sst/opencode
+name: sync-from-upstream
+description: use this when asked to sync from upstream, update the fork, or pull latest changes from sst/opencode
 ---
 
 # Sync Goblins Fork with Upstream

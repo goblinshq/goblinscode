@@ -37,13 +37,9 @@ git merge origin/dev -m "Merge upstream sst/opencode dev branch"
 git push fork main
 ```
 
-Or use the built-in skill:
+Or just ask gcode to "sync from upstream" - it will use the built-in skill.
 
-```
-/sync-goblins
-```
-
-See [.opencode/skill/sync-goblins/skill.md](.opencode/skill/sync-goblins/skill.md) for detailed instructions on handling merge conflicts.
+See [.opencode/skill/sync-from-upstream/skill.md](.opencode/skill/sync-from-upstream/skill.md) for detailed instructions on handling merge conflicts.
 
 ## Key Differences from Upstream
 
