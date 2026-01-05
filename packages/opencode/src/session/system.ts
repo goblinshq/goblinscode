@@ -1,4 +1,3 @@
-import { Ripgrep } from "../file/ripgrep"
 import { Global } from "../global"
 import { Filesystem } from "../util/filesystem"
 import { Config } from "../config/config"
@@ -10,7 +9,7 @@ import os from "os"
 // Based on Claude Code's system prompt: https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/system-prompt-main-system-prompt.md
 // import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
 // import PROMPT_ANTHROPIC_WITHOUT_TODO from "./prompt/qwen.txt"
-import PROMPT_GOBLINS from "./prompt/goblins.txt"
+import { goblinsPrompt } from "./prompt/goblins"
 // import PROMPT_GEMINI from "./prompt/gemini.txt"
 import PROMPT_ANTHROPIC_SPOOF from "./prompt/anthropic_spoof.txt"
 // import PROMPT_CODEX from "./prompt/codex.txt"
@@ -23,8 +22,8 @@ export namespace SystemPrompt {
     return []
   }
 
-  export function provider(_model: Provider.Model) {
-    return [PROMPT_GOBLINS]
+  export function provider(model: Provider.Model) {
+    return [goblinsPrompt(model.providerID)]
     // if (model.api.id.includes("gpt-5")) return [PROMPT_CODEX]
     // if (model.api.id.includes("gpt-") || model.api.id.includes("o1") || model.api.id.includes("o3"))
     //   return [PROMPT_ANTHROPIC]
@@ -33,29 +32,8 @@ export namespace SystemPrompt {
     // return [PROMPT_ANTHROPIC_WITHOUT_TODO]
   }
 
-  export async function environment() {
-    const project = Instance.project
-    return [
-      [
-        `Here is some useful information about the environment you are running in:`,
-        `<env>`,
-        `  Working directory: ${Instance.directory}`,
-        `  Is directory a git repo: ${project.vcs === "git" ? "yes" : "no"}`,
-        `  Platform: ${process.platform}`,
-        `  Today's date: ${new Date().toDateString()}`,
-        `</env>`,
-        `<files>`,
-        `  ${
-          project.vcs === "git" && false
-            ? await Ripgrep.tree({
-                cwd: Instance.directory,
-                limit: 200,
-              })
-            : ""
-        }`,
-        `</files>`,
-      ].join("\n"),
-    ]
+  export function environment() {
+    return []
   }
 
   const LOCAL_RULE_FILES = [

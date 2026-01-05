@@ -26,7 +26,6 @@ describe("tool.bash", () => {
         const result = await bash.execute(
           {
             command: "echo 'test'",
-            description: "Echo test message",
           },
           ctx,
         )
@@ -54,7 +53,6 @@ describe("tool.bash permissions", () => {
         await bash.execute(
           {
             command: "echo hello",
-            description: "Echo hello",
           },
           testCtx,
         )
@@ -81,7 +79,6 @@ describe("tool.bash permissions", () => {
         await bash.execute(
           {
             command: "echo foo && echo bar",
-            description: "Echo twice",
           },
           testCtx,
         )
@@ -109,7 +106,6 @@ describe("tool.bash permissions", () => {
         await bash.execute(
           {
             command: "cd ../",
-            description: "Change to parent directory",
           },
           testCtx,
         )
@@ -136,7 +132,6 @@ describe("tool.bash permissions", () => {
           {
             command: "ls",
             workdir: "/tmp",
-            description: "List /tmp",
           },
           testCtx,
         )
@@ -166,7 +161,6 @@ describe("tool.bash permissions", () => {
         await bash.execute(
           {
             command: "rm tmpfile",
-            description: "Remove tmpfile",
           },
           testCtx,
         )
@@ -193,7 +187,6 @@ describe("tool.bash permissions", () => {
         await bash.execute(
           {
             command: "git log --oneline -5",
-            description: "Git log",
           },
           testCtx,
         )
@@ -220,7 +213,6 @@ describe("tool.bash permissions", () => {
         await bash.execute(
           {
             command: "cd .",
-            description: "Stay in current directory",
           },
           testCtx,
         )

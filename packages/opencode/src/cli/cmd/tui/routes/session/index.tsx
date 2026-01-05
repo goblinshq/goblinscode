@@ -1618,7 +1618,7 @@ function Bash(props: ToolProps<typeof BashTool>) {
   return (
     <Switch>
       <Match when={props.metadata.output !== undefined}>
-        <BlockTool title={"# " + (props.input.description ?? "Shell")} part={props.part}>
+        <BlockTool title="# Shell" part={props.part}>
           <box gap={1}>
             <text fg={theme.text}>$ {props.input.command}</text>
             <text fg={theme.text}>{output()}</text>
@@ -1646,10 +1646,21 @@ function Write(props: ToolProps<typeof WriteTool>) {
     return props.metadata.diagnostics?.[filePath] ?? []
   })
 
+  const pending = createMemo(() => {
+    const file = props.input.filePath ? normalizePath(props.input.filePath) : "…"
+    const chars = props.input.content?.length ?? 0
+    return chars > 0 ? `${file} (${Locale.number(chars)} chars)` : file
+  })
+
+  const complete = createMemo(() => props.metadata.diagnostics !== undefined)
+
   return (
-    <Switch>
-      <Match when={props.metadata.diagnostics !== undefined}>
-        <BlockTool title={"# Wrote " + normalizePath(props.input.filePath!)} part={props.part}>
+    <>
+      <InlineTool icon="📝" pending={pending()} complete={complete()} part={props.part}>
+        {normalizePath(props.input.filePath!)}
+      </InlineTool>
+      <Show when={complete()}>
+        <box paddingLeft={3}>
           <line_number fg={theme.textMuted} minWidth={3} paddingRight={1}>
             <code
               conceal={false}
@@ -1668,19 +1679,9 @@ function Write(props: ToolProps<typeof WriteTool>) {
               )}
             </For>
           </Show>
-        </BlockTool>
-      </Match>
-      <Match when={true}>
-        <InlineTool
-          icon="📝"
-          pending={`Write ${props.input.filePath ? normalizePath(props.input.filePath) : "…"}`}
-          complete={props.input.filePath}
-          part={props.part}
-        >
-          Write {normalizePath(props.input.filePath!)}
-        </InlineTool>
-      </Match>
-    </Switch>
+        </box>
+      </Show>
+    </>
   )
 }
 
@@ -1844,56 +1845,53 @@ function Edit(props: ToolProps<typeof EditTool>) {
     return arr.filter((x) => x.severity === 1).slice(0, 3)
   })
 
+  const complete = createMemo(() => props.metadata.diff !== undefined)
+
   return (
-    <Switch>
-      <Match when={props.metadata.diff !== undefined}>
-        <BlockTool title={"← Edit " + normalizePath(props.input.filePath!)} part={props.part}>
-          <box paddingLeft={1}>
-            <diff
-              diff={diffContent()}
-              view={view()}
-              filetype={ft()}
-              syntaxStyle={syntax()}
-              showLineNumbers={true}
-              width="100%"
-              wrapMode={ctx.diffWrapMode()}
-              fg={theme.text}
-              addedBg={theme.diffAddedBg}
-              removedBg={theme.diffRemovedBg}
-              contextBg={theme.diffContextBg}
-              addedSignColor={theme.diffHighlightAdded}
-              removedSignColor={theme.diffHighlightRemoved}
-              lineNumberFg={theme.diffLineNumber}
-              lineNumberBg={theme.diffContextBg}
-              addedLineNumberBg={theme.diffAddedLineNumberBg}
-              removedLineNumberBg={theme.diffRemovedLineNumberBg}
-            />
+    <>
+      <InlineTool
+        icon="✏️"
+        pending={props.input.filePath ? normalizePath(props.input.filePath) : "…"}
+        complete={complete()}
+        part={props.part}
+      >
+        {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
+      </InlineTool>
+      <Show when={complete()}>
+        <box paddingLeft={3}>
+          <diff
+            diff={diffContent()}
+            view={view()}
+            filetype={ft()}
+            syntaxStyle={syntax()}
+            showLineNumbers={true}
+            width="100%"
+            wrapMode={ctx.diffWrapMode()}
+            fg={theme.text}
+            addedBg={theme.diffAddedBg}
+            removedBg={theme.diffRemovedBg}
+            contextBg={theme.diffContextBg}
+            addedSignColor={theme.diffHighlightAdded}
+            removedSignColor={theme.diffHighlightRemoved}
+            lineNumberFg={theme.diffLineNumber}
+            lineNumberBg={theme.diffContextBg}
+            addedLineNumberBg={theme.diffAddedLineNumberBg}
+            removedLineNumberBg={theme.diffRemovedLineNumberBg}
+          />
+        </box>
+        <Show when={diagnostics().length}>
+          <box paddingLeft={3}>
+            <For each={diagnostics()}>
+              {(diagnostic) => (
+                <text fg={theme.error}>
+                  Error [{diagnostic.range.start.line + 1}:{diagnostic.range.start.character + 1}] {diagnostic.message}
+                </text>
+              )}
+            </For>
           </box>
-          <Show when={diagnostics().length}>
-            <box>
-              <For each={diagnostics()}>
-                {(diagnostic) => (
-                  <text fg={theme.error}>
-                    Error [{diagnostic.range.start.line + 1}:{diagnostic.range.start.character + 1}]{" "}
-                    {diagnostic.message}
-                  </text>
-                )}
-              </For>
-            </box>
-          </Show>
-        </BlockTool>
-      </Match>
-      <Match when={true}>
-        <InlineTool
-          icon="✏️"
-          pending={props.input.filePath ? normalizePath(props.input.filePath) : "…"}
-          complete={props.input.filePath}
-          part={props.part}
-        >
-          {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
-        </InlineTool>
-      </Match>
-    </Switch>
+        </Show>
+      </Show>
+    </>
   )
 }
 
