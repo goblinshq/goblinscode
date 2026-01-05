@@ -58,6 +58,8 @@ if [[ "$os" == "darwin" ]]; then
         echo -e "  xcode-select --install"
         echo -e ""
     fi
+    # Remove attributes again after signing (codesign can re-add them)
+    xattr -cr "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
 fi
 
 version=$("$INSTALL_DIR/$BINARY_NAME" --version 2>/dev/null || echo "unknown")
