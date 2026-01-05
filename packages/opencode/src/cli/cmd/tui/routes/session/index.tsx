@@ -64,7 +64,7 @@ import { Toast, useToast } from "../../ui/toast"
 import { useKV } from "../../context/kv.tsx"
 import "opentui-spinner/solid"
 import { Editor } from "../../util/editor"
-import stripAnsi from "strip-ansi"
+import { renderTerminal } from "@/util/terminal"
 import { Footer } from "./footer.tsx"
 import { usePromptRef } from "../../context/prompt"
 import { Filesystem } from "@/util/filesystem"
@@ -1620,7 +1620,7 @@ function BlockTool(props: { title: string; children: JSX.Element; onClick?: () =
 }
 
 function Bash(props: ToolProps<typeof BashTool>) {
-  const output = createMemo(() => stripAnsi(props.metadata.output?.trim() ?? ""))
+  const output = createMemo(() => renderTerminal(props.metadata.output ?? ""))
   const { theme } = useTheme()
   return (
     <Switch>
