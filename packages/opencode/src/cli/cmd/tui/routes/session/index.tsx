@@ -1216,6 +1216,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
           <text fg={theme.textMuted}>{props.message.error?.data.message}</text>
         </box>
       </Show>
+
       <Switch>
         <Match when={props.last || final()}>
           <box paddingLeft={3}>
@@ -1255,7 +1256,7 @@ function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: Ass
     return props.part.text.replace("[REDACTED]", "").trim()
   })
   return (
-    <Show when={content() && ctx.showThinking()}>
+    <Show when={content()}>
       <box
         id={"text-" + props.part.id}
         paddingLeft={2}
@@ -1270,7 +1271,7 @@ function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: Ass
           drawUnstyledText={false}
           streaming={true}
           syntaxStyle={subtleSyntax()}
-          content={"_Thinking:_ " + content()}
+          content={content()}
           conceal={ctx.conceal()}
           fg={theme.textMuted}
         />
