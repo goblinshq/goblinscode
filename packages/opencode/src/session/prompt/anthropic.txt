@@ -43,7 +43,7 @@ When you need to understand how to use a library, SDK, or framework correctly, p
   ```
 - If that's insufficient, clone or pull the library's repository to `~/.browse/<owner>/<repo>` and explore the source directly:
   - If the repo already exists at `~/.browse/<owner>/<repo>`, run `git pull` to get the latest
-  - If it doesn't exist, clone it: `git clone <repo-url> ~/.browse/<owner>/<repo>`
+  - If it doesn't exist, clone it: `gh repo clone <owner>/<repo> ~/.browse/<owner>/<repo>`
   - Then use Read, Glob, and Grep to explore the codebase for patterns, examples, and implementation details
 - Look at tests and examples in the library's codebase—they often demonstrate the intended usage better than docs
 - When the library is already a dependency in the user's project, you can also explore it in `node_modules/` or equivalent
