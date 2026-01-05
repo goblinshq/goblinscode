@@ -120,9 +120,9 @@ export namespace ToolRegistry {
     const result = await Promise.all(
       tools
         .filter((t) => {
-          // Enable websearch/codesearch for zen users OR via enable flag
+          // Disable exa websearch/codesearch - use deepwiki instead
           if (t.id === "codesearch" || t.id === "websearch") {
-            return providerID === "opencode" || Flag.OPENCODE_ENABLE_EXA
+            return false
           }
           return true
         })
