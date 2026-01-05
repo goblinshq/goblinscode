@@ -1386,14 +1386,42 @@ type ToolProps<T extends Tool.Info> = {
   output?: string
   part: ToolPart
 }
+function OutputPreview(props: { output?: string }) {
+  const { theme } = useTheme()
+  const preview = createMemo(() => {
+    if (!props.output) return undefined
+    const lines = props.output.split("\n").slice(0, 8)
+    const text = lines.join("\n")
+    return text.length > 500 ? text.slice(0, 500) + "…" : text + (props.output.split("\n").length > 8 ? "\n…" : "")
+  })
+
+  return (
+    <Show when={preview()}>
+      <box
+        border={["left"]}
+        paddingLeft={2}
+        marginLeft={3}
+        marginTop={1}
+        customBorderChars={SplitBorder.customBorderChars}
+        borderColor={theme.backgroundElement}
+      >
+        <text fg={theme.textMuted}>{preview()}</text>
+      </box>
+    </Show>
+  )
+}
+
 function GenericTool(props: ToolProps<any>) {
   const name = props.tool.replace(/_/g, " ").replace(/-/g, " ")
   const params = input(props.input)
   const pending = params ? `${name} ${params}` : name
   return (
-    <InlineTool icon="⚙️" pending={pending} complete={true} part={props.part}>
-      {name} {params}
-    </InlineTool>
+    <box>
+      <InlineTool icon="⚙️" pending={pending} complete={true} part={props.part}>
+        {name} {params}
+      </InlineTool>
+      <OutputPreview output={props.output} />
+    </box>
   )
 }
 
@@ -1730,14 +1758,6 @@ function List(props: ToolProps<typeof ListTool>) {
 }
 
 function WebFetch(props: ToolProps<typeof WebFetchTool>) {
-  const { theme } = useTheme()
-  const preview = createMemo(() => {
-    if (!props.output) return undefined
-    const lines = props.output.split("\n").slice(0, 8)
-    const text = lines.join("\n")
-    return text.length > 500 ? text.slice(0, 500) + "..." : text + (props.output.split("\n").length > 8 ? "\n..." : "")
-  })
-
   return (
     <box>
       <InlineTool
@@ -1748,18 +1768,7 @@ function WebFetch(props: ToolProps<typeof WebFetchTool>) {
       >
         Fetch {(props.input as any).url}
       </InlineTool>
-      <Show when={preview()}>
-        <box
-          border={["left"]}
-          paddingLeft={2}
-          marginLeft={3}
-          marginTop={1}
-          customBorderChars={SplitBorder.customBorderChars}
-          borderColor={theme.backgroundElement}
-        >
-          <text fg={theme.textMuted}>{preview()}</text>
-        </box>
-      </Show>
+      <OutputPreview output={props.output} />
     </box>
   )
 }
