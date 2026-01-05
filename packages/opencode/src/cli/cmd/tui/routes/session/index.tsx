@@ -1571,7 +1571,12 @@ function Bash(props: ToolProps<typeof BashTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="⚡" pending="Writing command..." complete={props.input.command} part={props.part}>
+        <InlineTool
+          icon="⚡"
+          pending={props.input.command ?? "Running command…"}
+          complete={props.input.command}
+          part={props.part}
+        >
           {props.input.command}
         </InlineTool>
       </Match>
@@ -1616,7 +1621,12 @@ function Write(props: ToolProps<typeof WriteTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="📝" pending="Preparing write..." complete={props.input.filePath} part={props.part}>
+        <InlineTool
+          icon="📝"
+          pending={`Write ${normalizePath(props.input.filePath!)}`}
+          complete={props.input.filePath}
+          part={props.part}
+        >
           Write {normalizePath(props.input.filePath!)}
         </InlineTool>
       </Match>
@@ -1625,8 +1635,12 @@ function Write(props: ToolProps<typeof WriteTool>) {
 }
 
 function Glob(props: ToolProps<typeof GlobTool>) {
+  const pending = createMemo(() => {
+    const p = props.input.path ? ` in ${normalizePath(props.input.path)}` : ""
+    return `Glob "${props.input.pattern ?? "…"}"${p}`
+  })
   return (
-    <InlineTool icon="📁" pending="Finding files..." complete={props.input.pattern} part={props.part}>
+    <InlineTool icon="📁" pending={pending()} complete={props.input.pattern} part={props.part}>
       Glob "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
       <Show when={props.metadata.count}>({props.metadata.count} matches)</Show>
     </InlineTool>
@@ -1635,15 +1649,24 @@ function Glob(props: ToolProps<typeof GlobTool>) {
 
 function Read(props: ToolProps<typeof ReadTool>) {
   return (
-    <InlineTool icon="📄" pending="Reading file..." complete={props.input.filePath} part={props.part}>
+    <InlineTool
+      icon="📄"
+      pending={`Read ${normalizePath(props.input.filePath!)}`}
+      complete={props.input.filePath}
+      part={props.part}
+    >
       Read {normalizePath(props.input.filePath!)} {input(props.input, ["filePath"])}
     </InlineTool>
   )
 }
 
 function Grep(props: ToolProps<typeof GrepTool>) {
+  const pending = createMemo(() => {
+    const p = props.input.path ? ` in ${normalizePath(props.input.path)}` : ""
+    return `Grep "${props.input.pattern ?? "…"}"${p}`
+  })
   return (
-    <InlineTool icon="🔍" pending="Searching content..." complete={props.input.pattern} part={props.part}>
+    <InlineTool icon="🔍" pending={pending()} complete={props.input.pattern} part={props.part}>
       Grep "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
       <Show when={props.metadata.matches}>({props.metadata.matches} matches)</Show>
     </InlineTool>
@@ -1658,7 +1681,7 @@ function List(props: ToolProps<typeof ListTool>) {
     return ""
   })
   return (
-    <InlineTool icon="📂" pending="Listing directory..." complete={props.input.path !== undefined} part={props.part}>
+    <InlineTool icon="📂" pending={`List ${dir() || "…"}`} complete={props.input.path !== undefined} part={props.part}>
       List {dir()}
     </InlineTool>
   )
@@ -1675,7 +1698,12 @@ function WebFetch(props: ToolProps<typeof WebFetchTool>) {
 
   return (
     <box>
-      <InlineTool icon="🔎" pending="Fetching..." complete={(props.input as any).url} part={props.part}>
+      <InlineTool
+        icon="🔎"
+        pending={`Fetch ${(props.input as any).url ?? "…"}`}
+        complete={(props.input as any).url}
+        part={props.part}
+      >
         Fetch {(props.input as any).url}
       </InlineTool>
       <Show when={preview()}>
@@ -1698,7 +1726,7 @@ function CodeSearch(props: ToolProps<any>) {
   const input = props.input as any
   const metadata = props.metadata as any
   return (
-    <InlineTool icon="💻" pending="Searching code..." complete={input.query} part={props.part}>
+    <InlineTool icon="💻" pending={`Code Search "${input.query ?? "…"}"`} complete={input.query} part={props.part}>
       Code Search "{input.query}" <Show when={metadata.results}>({metadata.results} results)</Show>
     </InlineTool>
   )
@@ -1708,7 +1736,7 @@ function WebSearch(props: ToolProps<any>) {
   const input = props.input as any
   const metadata = props.metadata as any
   return (
-    <InlineTool icon="🌐" pending="Searching web..." complete={input.query} part={props.part}>
+    <InlineTool icon="🌐" pending={`Web Search "${input.query ?? "…"}"`} complete={input.query} part={props.part}>
       Web Search "{input.query}" <Show when={metadata.numResults}>({metadata.numResults} results)</Show>
     </InlineTool>
   )
@@ -1753,7 +1781,7 @@ function Task(props: ToolProps<typeof TaskTool>) {
       <Match when={true}>
         <InlineTool
           icon="🤖"
-          pending="Delegating..."
+          pending={`${Locale.titlecase(props.input.subagent_type ?? "Task")} "${props.input.description ?? "…"}"`}
           complete={props.input.subagent_type ?? props.input.description}
           part={props.part}
         >
@@ -1825,7 +1853,12 @@ function Edit(props: ToolProps<typeof EditTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="✏️" pending="Preparing edit..." complete={props.input.filePath} part={props.part}>
+        <InlineTool
+          icon="✏️"
+          pending={`Edit ${normalizePath(props.input.filePath!)}`}
+          complete={props.input.filePath}
+          part={props.part}
+        >
           Edit {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
         </InlineTool>
       </Match>
@@ -1845,7 +1878,7 @@ function Patch(props: ToolProps<typeof PatchTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="🩹" pending="Preparing patch..." complete={false} part={props.part}>
+        <InlineTool icon="🩹" pending="Patch…" complete={false} part={props.part}>
           Patch
         </InlineTool>
       </Match>
@@ -1866,8 +1899,8 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="✅" pending="Updating todos..." complete={false} part={props.part}>
-          Updating todos...
+        <InlineTool icon="✅" pending="Updating todos…" complete={false} part={props.part}>
+          Updating todos…
         </InlineTool>
       </Match>
     </Switch>
