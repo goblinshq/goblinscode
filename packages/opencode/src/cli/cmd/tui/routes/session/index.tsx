@@ -1177,6 +1177,14 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
     return props.message.time.completed - user.time.created
   })
 
+  // Calculate reasoning tokens from parts in real-time during streaming
+  const streamingReasoningTokens = createMemo(() => {
+    const chars = props.parts
+      .filter((p): p is ReasoningPart => p.type === "reasoning")
+      .reduce((acc, p) => acc + p.text.length, 0)
+    return Math.ceil(chars / 4)
+  })
+
   return (
     <>
       <For each={props.parts}>
@@ -1217,6 +1225,12 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
               <span style={{ fg: theme.textMuted }}> · {props.message.modelID}</span>
               <Show when={duration()}>
                 <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
+              </Show>
+              <Show when={final() ? props.message.tokens.reasoning > 0 : streamingReasoningTokens() > 0}>
+                <span style={{ fg: theme.textMuted }}>
+                  {" "}
+                  · {Locale.number(final() ? props.message.tokens.reasoning : streamingReasoningTokens())} reasoning
+                </span>
               </Show>
             </text>
           </box>

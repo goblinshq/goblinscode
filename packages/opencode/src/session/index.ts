@@ -395,6 +395,7 @@ export namespace Session {
       model: z.custom<Provider.Model>(),
       usage: z.custom<LanguageModelUsage>(),
       metadata: z.custom<ProviderMetadata>().optional(),
+      reasoningTokensFromContent: z.number().optional(),
     }),
     (input) => {
       const cachedInputTokens = input.usage.cachedInputTokens ?? 0
@@ -407,10 +408,13 @@ export namespace Session {
         return value
       }
 
+      // Use SDK reasoning tokens if available, otherwise fall back to estimated from content
+      const reasoningTokens = input.usage?.reasoningTokens ?? input.reasoningTokensFromContent ?? 0
+
       const tokens = {
         input: safe(adjustedInputTokens),
         output: safe(input.usage.outputTokens ?? 0),
-        reasoning: safe(input.usage?.reasoningTokens ?? 0),
+        reasoning: safe(reasoningTokens),
         cache: {
           write: safe(
             (input.metadata?.["anthropic"]?.["cacheCreationInputTokens"] ??

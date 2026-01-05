@@ -49,6 +49,7 @@ export namespace SessionProcessor {
           try {
             let currentText: MessageV2.TextPart | undefined
             let reasoningMap: Record<string, MessageV2.ReasoningPart> = {}
+            let reasoningChars = 0
             const stream = await LLM.stream(streamInput)
 
             for await (const value of stream.fullStream) {
@@ -88,6 +89,7 @@ export namespace SessionProcessor {
                   if (value.id in reasoningMap) {
                     const part = reasoningMap[value.id]
                     part.text = part.text.trimEnd()
+                    reasoningChars += part.text.length
 
                     part.time = {
                       ...part.time,
@@ -230,10 +232,13 @@ export namespace SessionProcessor {
                   break
 
                 case "finish-step":
+                  // Estimate reasoning tokens from streamed thinking blocks (~4 chars per token)
+                  const reasoningTokensFromContent = Math.ceil(reasoningChars / 4)
                   const usage = Session.getUsage({
                     model: input.model,
                     usage: value.usage,
                     metadata: value.providerMetadata,
+                    reasoningTokensFromContent,
                   })
                   input.assistantMessage.finish = value.finishReason
                   input.assistantMessage.cost += usage.cost
