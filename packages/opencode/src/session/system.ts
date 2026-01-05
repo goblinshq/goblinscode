@@ -7,6 +7,7 @@ import { Instance } from "../project/instance"
 import path from "path"
 import os from "os"
 
+// Based on Claude Code's system prompt: https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/system-prompt-main-system-prompt.md
 import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
 import PROMPT_ANTHROPIC_WITHOUT_TODO from "./prompt/qwen.txt"
 import PROMPT_BEAST from "./prompt/beast.txt"
