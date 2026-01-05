@@ -1469,23 +1469,26 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
     return text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥")
   })
 
-  const shimmerWidth = 4
   const shimmerPause = 8
+
+  const shimmerWidth = createMemo(() => Math.max(2, Math.floor(shimmerText().length / 4)))
 
   const shimmerFrames = createMemo(() => {
     const text = shimmerText()
-    const cycleLength = text.length + shimmerWidth * 2 + shimmerPause
+    const width = shimmerWidth()
+    const cycleLength = text.length + width * 2 + shimmerPause
     return Array.from({ length: cycleLength }, () => text)
   })
 
-  // Calculate interval so traversal takes 350ms (text.length + width*2 frames for traversal)
+  // Calculate interval so traversal takes 500ms
   const shimmerInterval = createMemo(() => {
     const text = shimmerText()
-    const traversalFrames = text.length + shimmerWidth * 2
-    return Math.max(10, Math.floor(350 / traversalFrames))
+    const width = shimmerWidth()
+    const traversalFrames = text.length + width * 2
+    return Math.max(10, Math.floor(500 / traversalFrames))
   })
 
-  const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth, shimmerPause))
+  const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth(), shimmerPause))
 
   return (
     <box
