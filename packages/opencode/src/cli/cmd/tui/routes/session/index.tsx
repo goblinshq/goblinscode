@@ -1387,9 +1387,12 @@ type ToolProps<T extends Tool.Info> = {
   part: ToolPart
 }
 function GenericTool(props: ToolProps<any>) {
+  const name = props.tool.replace(/_/g, " ").replace(/-/g, " ")
+  const params = input(props.input)
+  const pending = params ? `${name} ${params}` : name
   return (
-    <InlineTool icon="⚙" pending="Writing command..." complete={true} part={props.part}>
-      {props.tool} {input(props.input)}
+    <InlineTool icon="⚙️" pending={pending} complete={true} part={props.part}>
+      {name} {params}
     </InlineTool>
   )
 }
