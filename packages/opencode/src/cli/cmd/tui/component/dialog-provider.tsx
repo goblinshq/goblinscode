@@ -19,12 +19,22 @@ const PROVIDER_PRIORITY: Record<string, number> = {
   google: 4,
 }
 
+// Custom service providers (not LLMs)
+const SERVICE_PROVIDERS = [
+  {
+    id: "parallel",
+    name: "Parallel",
+    description: "Web search API",
+    category: "Services",
+  },
+]
+
 export function createDialogProviderOptions() {
   const sync = useSync()
   const dialog = useDialog()
   const sdk = useSDK()
   const options = createMemo(() => {
-    return pipe(
+    const llmProviders = pipe(
       sync.data.provider_next.all,
       sortBy((x) => PROVIDER_PRIORITY[x.id] ?? 99),
       map((provider) => ({
@@ -84,6 +94,18 @@ export function createDialogProviderOptions() {
         },
       })),
     )
+
+    const serviceProviders = SERVICE_PROVIDERS.map((service) => ({
+      title: service.name,
+      value: service.id,
+      description: service.description,
+      category: service.category,
+      async onSelect() {
+        dialog.replace(() => <ServiceApiMethod serviceID={service.id} title={service.name} />)
+      },
+    }))
+
+    return [...llmProviders, ...serviceProviders]
   })
   return options
 }
@@ -218,6 +240,53 @@ function ApiMethod(props: ApiMethodProps) {
         await sdk.client.instance.dispose()
         await sync.bootstrap()
         dialog.replace(() => <DialogModel providerID={props.providerID} />)
+      }}
+    />
+  )
+}
+
+interface ServiceApiMethodProps {
+  serviceID: string
+  title: string
+}
+function ServiceApiMethod(props: ServiceApiMethodProps) {
+  const dialog = useDialog()
+  const sdk = useSDK()
+  const { theme } = useTheme()
+
+  const descriptions: Record<string, { text: string; url: string }> = {
+    parallel: {
+      text: "Parallel provides web search capabilities for AI agents.",
+      url: "https://parallel.ai",
+    },
+  }
+
+  const desc = descriptions[props.serviceID]
+
+  return (
+    <DialogPrompt
+      title={props.title}
+      placeholder="API key"
+      description={
+        desc ? (
+          <box gap={1}>
+            <text fg={theme.textMuted}>{desc.text}</text>
+            <text fg={theme.text}>
+              Go to <span style={{ fg: theme.primary }}>{desc.url}</span> to get a key
+            </text>
+          </box>
+        ) : undefined
+      }
+      onConfirm={async (value) => {
+        if (!value) return
+        sdk.client.auth.set({
+          providerID: props.serviceID,
+          auth: {
+            type: "api",
+            key: value,
+          },
+        })
+        dialog.clear()
       }}
     />
   )
