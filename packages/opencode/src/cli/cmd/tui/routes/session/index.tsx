@@ -1469,12 +1469,23 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
     return text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥")
   })
 
+  const shimmerWidth = 4
+  const shimmerPause = 8
+
   const shimmerFrames = createMemo(() => {
     const text = shimmerText()
-    return Array.from({ length: text.length + 6 }, () => text)
+    const cycleLength = text.length + shimmerWidth * 2 + shimmerPause
+    return Array.from({ length: cycleLength }, () => text)
   })
 
-  const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, 4))
+  // Calculate interval so traversal takes 350ms (text.length + width*2 frames for traversal)
+  const shimmerInterval = createMemo(() => {
+    const text = shimmerText()
+    const traversalFrames = text.length + shimmerWidth * 2
+    return Math.max(10, Math.floor(350 / traversalFrames))
+  })
+
+  const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth, shimmerPause))
 
   return (
     <box
@@ -1514,7 +1525,7 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
           </text>
         }
       >
-        <spinner frames={shimmerFrames()} interval={29} color={shimmerColor()} />
+        <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
       </Show>
       <Show when={error() && !denied()}>
         <text fg={theme.error}>{error()}</text>
