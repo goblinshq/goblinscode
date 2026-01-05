@@ -1,4 +1,4 @@
-name: goblins
+name: release
 
 on:
   push:
