@@ -49,15 +49,18 @@ export namespace LSPClient {
     )
 
     const diagnostics = new Map<string, Diagnostic[]>()
+    const pendingFirstOpen = new Set<string>()
     connection.onNotification("textDocument/publishDiagnostics", (params) => {
       const filePath = Filesystem.normalizePath(fileURLToPath(params.uri))
       l.info("textDocument/publishDiagnostics", {
         path: filePath,
         count: params.diagnostics.length,
       })
-      const exists = diagnostics.has(filePath)
       diagnostics.set(filePath, params.diagnostics)
-      if (!exists && input.serverID === "typescript") return
+      // For typescript, skip publishing on initial load unless we're waiting for it
+      // This reduces noise from initial project diagnostics
+      if (input.serverID === "typescript" && !pendingFirstOpen.has(filePath)) return
+      pendingFirstOpen.delete(filePath)
       Bus.publish(Event.Diagnostics, { path: filePath, serverID: input.serverID })
     })
     connection.onRequest("window/workDoneProgress/create", (params) => {
@@ -206,6 +209,12 @@ export namespace LSPClient {
       },
       get diagnostics() {
         return diagnostics
+      },
+      markPendingDiagnostics(filePath: string) {
+        const normalized = Filesystem.normalizePath(
+          path.isAbsolute(filePath) ? filePath : path.resolve(Instance.directory, filePath),
+        )
+        pendingFirstOpen.add(normalized)
       },
       async waitForDiagnostics(input: { path: string }) {
         const normalizedPath = Filesystem.normalizePath(
