@@ -1221,21 +1221,25 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
 
       <Switch>
         <Match when={props.last || final()}>
-          <box paddingLeft={3}>
-            <text marginTop={1}>
-              <span style={{ fg: local.agent.color(props.message.agent) }}>▣ </span>{" "}
-              <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.mode)}</span>
-              <span style={{ fg: theme.textMuted }}> · {props.message.modelID}</span>
-              <Show when={duration()}>
-                <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
-              </Show>
-              <Show when={final() ? props.message.tokens.reasoning > 0 : streamingReasoningTokens() > 0}>
-                <span style={{ fg: theme.textMuted }}>
-                  {" "}
-                  · {Locale.number(final() ? props.message.tokens.reasoning : streamingReasoningTokens())} reasoning
-                </span>
-              </Show>
+          <box paddingLeft={3} marginTop={1} flexDirection="row">
+            <text>
+              <span style={{ fg: local.agent.color(props.message.agent) }}>{Locale.titlecase(props.message.mode)}</span>
+              <span style={{ fg: theme.textMuted }}> · </span>
             </text>
+            <Show when={final()} fallback={<ShimmerText text={props.message.modelID} />}>
+              <text>
+                <span style={{ fg: theme.textMuted }}>{props.message.modelID}</span>
+                <Show when={duration()}>
+                  <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
+                </Show>
+                <Show when={props.message.tokens.reasoning > 0}>
+                  <span style={{ fg: theme.textMuted }}>
+                    {" "}
+                    · {Locale.number(props.message.tokens.reasoning)} reasoning
+                  </span>
+                </Show>
+              </text>
+            </Show>
           </box>
         </Match>
       </Switch>
@@ -1467,12 +1471,12 @@ function createShimmer(baseColor: RGBA, highlightColor: RGBA, width: number = 3,
   }
 }
 
-function ShimmerText(props: { icon: string; text: string }) {
+function ShimmerText(props: { icon?: string; text: string }) {
   const { theme } = useTheme()
   const shimmerPause = 8
 
   const shimmerText = createMemo(() => {
-    const text = `${props.icon} ${props.text}`
+    const text = props.icon ? `${props.icon} ${props.text}` : props.text
     return text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥")
   })
 
@@ -1674,7 +1678,7 @@ function Write(props: ToolProps<typeof WriteTool>) {
       <Match when={true}>
         <InlineTool
           icon="📝"
-          pending={`Write ${normalizePath(props.input.filePath!)}`}
+          pending={`Write ${props.input.filePath ? normalizePath(props.input.filePath) : "…"}`}
           complete={props.input.filePath}
           part={props.part}
         >
@@ -1699,13 +1703,13 @@ function Glob(props: ToolProps<typeof GlobTool>) {
 }
 
 function Read(props: ToolProps<typeof ReadTool>) {
+  const pending = createMemo(() => {
+    const file = props.input.filePath ? normalizePath(props.input.filePath) : "…"
+    const extra = input(props.input, ["filePath"])
+    return extra ? `${file} ${extra}` : file
+  })
   return (
-    <InlineTool
-      icon="👀"
-      pending={normalizePath(props.input.filePath!)}
-      complete={props.input.filePath}
-      part={props.part}
-    >
+    <InlineTool icon="👀" pending={pending()} complete={props.input.filePath} part={props.part}>
       {normalizePath(props.input.filePath!)} {input(props.input, ["filePath"])}
     </InlineTool>
   )
@@ -1887,7 +1891,7 @@ function Edit(props: ToolProps<typeof EditTool>) {
       <Match when={true}>
         <InlineTool
           icon="✏️"
-          pending={`Edit ${normalizePath(props.input.filePath!)}`}
+          pending={`Edit ${props.input.filePath ? normalizePath(props.input.filePath) : "…"}`}
           complete={props.input.filePath}
           part={props.part}
         >
