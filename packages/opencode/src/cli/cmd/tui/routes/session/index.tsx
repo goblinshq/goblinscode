@@ -1437,6 +1437,54 @@ function createShimmer(baseColor: RGBA, highlightColor: RGBA, width: number = 3,
   }
 }
 
+function ShimmerText(props: { icon: string; text: string }) {
+  const { theme } = useTheme()
+  const shimmerPause = 8
+
+  const shimmerText = createMemo(() => {
+    const text = `${props.icon} ${props.text}`
+    return text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥")
+  })
+
+  const shimmerWidth = createMemo(() => Math.max(2, Math.floor(shimmerText().length / 4)))
+
+  const shimmerFrames = createMemo(() => {
+    const text = shimmerText()
+    const width = shimmerWidth()
+    const cycleLength = text.length + width * 2 + shimmerPause
+    return Array.from({ length: cycleLength }, () => text)
+  })
+
+  const shimmerInterval = createMemo(() => {
+    const text = shimmerText()
+    const width = shimmerWidth()
+    const traversalFrames = text.length + width * 2
+    return Math.max(10, Math.floor(500 / traversalFrames))
+  })
+
+  const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth(), shimmerPause))
+
+  return <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
+}
+
+function InlineToolContent(props: {
+  icon: string
+  complete: any
+  pending: string
+  children: JSX.Element
+  fg: RGBA
+  denied: boolean
+}) {
+  return (
+    <text fg={props.fg} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
+      <span style={{ bold: true }}>{props.icon}</span>{" "}
+      <Show fallback={props.pending} when={props.complete}>
+        {props.children}
+      </Show>
+    </text>
+  )
+}
+
 function InlineTool(props: { icon: string; complete: any; pending: string; children: JSX.Element; part: ToolPart }) {
   const [margin, setMargin] = createSignal(0)
   const { theme } = useTheme()
@@ -1463,32 +1511,6 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
   const error = createMemo(() => (props.part.state.status === "error" ? props.part.state.error : undefined))
 
   const denied = createMemo(() => error()?.includes("rejected permission") || error()?.includes("specified a rule"))
-
-  const shimmerText = createMemo(() => {
-    const text = `${props.icon} ${props.pending}`
-    return text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥")
-  })
-
-  const shimmerPause = 8
-
-  const shimmerWidth = createMemo(() => Math.max(2, Math.floor(shimmerText().length / 4)))
-
-  const shimmerFrames = createMemo(() => {
-    const text = shimmerText()
-    const width = shimmerWidth()
-    const cycleLength = text.length + width * 2 + shimmerPause
-    return Array.from({ length: cycleLength }, () => text)
-  })
-
-  // Calculate interval so traversal takes 500ms
-  const shimmerInterval = createMemo(() => {
-    const text = shimmerText()
-    const width = shimmerWidth()
-    const traversalFrames = text.length + width * 2
-    return Math.max(10, Math.floor(500 / traversalFrames))
-  })
-
-  const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth(), shimmerPause))
 
   return (
     <box
@@ -1520,15 +1542,18 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
       <Show
         when={isRunning() && animationsEnabled()}
         fallback={
-          <text fg={fg()} attributes={denied() ? TextAttributes.STRIKETHROUGH : undefined}>
-            <span style={{ bold: true }}>{props.icon}</span>{" "}
-            <Show fallback={props.pending} when={props.complete}>
-              {props.children}
-            </Show>
-          </text>
+          <InlineToolContent
+            icon={props.icon}
+            complete={props.complete}
+            pending={props.pending}
+            fg={fg()}
+            denied={denied() ?? false}
+          >
+            {props.children}
+          </InlineToolContent>
         }
       >
-        <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
+        <ShimmerText icon={props.icon} text={props.pending} />
       </Show>
       <Show when={error() && !denied()}>
         <text fg={theme.error}>{error()}</text>
