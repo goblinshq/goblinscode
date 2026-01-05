@@ -1400,12 +1400,15 @@ function OutputPreview(props: { output?: string; lines?: number }) {
     <Show when={preview()}>
       <box
         border={["left"]}
+        paddingTop={1}
+        paddingBottom={1}
         paddingLeft={2}
-        marginLeft={3}
+        marginTop={1}
+        backgroundColor={theme.backgroundPanel}
         customBorderChars={SplitBorder.customBorderChars}
-        borderColor={theme.backgroundElement}
+        borderColor={theme.background}
       >
-        <text fg={theme.textMuted} attributes={TextAttributes.DIM}>
+        <text paddingLeft={3} fg={theme.textMuted}>
           {preview()}
         </text>
       </box>
@@ -1519,7 +1522,6 @@ function InlineToolContent(props: {
 }
 
 function InlineTool(props: { icon: string; complete: any; pending: string; children: JSX.Element; part: ToolPart }) {
-  const [margin, setMargin] = createSignal(0)
   const { theme } = useTheme()
   const ctx = use()
   const sync = useSync()
@@ -1546,32 +1548,7 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
   const denied = createMemo(() => error()?.includes("rejected permission") || error()?.includes("specified a rule"))
 
   return (
-    <box
-      marginTop={margin()}
-      paddingLeft={3}
-      renderBefore={function () {
-        const el = this as BoxRenderable
-        const parent = el.parent
-        if (!parent) {
-          return
-        }
-        if (el.height > 1) {
-          setMargin(1)
-          return
-        }
-        const children = parent.getChildren()
-        const index = children.indexOf(el)
-        const previous = children[index - 1]
-        if (!previous) {
-          setMargin(0)
-          return
-        }
-        if (previous.height > 1 || previous.id.startsWith("text-")) {
-          setMargin(1)
-          return
-        }
-      }}
-    >
+    <box marginTop={1} paddingLeft={3}>
       <Show
         when={isRunning() && animationsEnabled()}
         fallback={
