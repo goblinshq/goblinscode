@@ -743,46 +743,8 @@ export function Prompt(props: PromptProps) {
         promptPartTypeId={() => promptPartTypeId}
       />
       <box ref={(r) => (anchor = r)} visible={props.visible !== false}>
-        {/* Top row: model/status on left, commands on right */}
-        <box flexDirection="row" justifyContent="space-between" paddingLeft={1}>
-          <box flexDirection="row" gap={1}>
-            <text fg={highlight()}>
-              {store.mode === "shell" ? "Shell" : Locale.titlecase(local.agent.current().name)}
-            </text>
-            <Show when={store.mode === "normal"}>
-              <text flexShrink={0} fg={keybind.leader ? theme.textMuted : theme.text}>
-                {local.model.parsed().model}
-              </text>
-              <text fg={theme.textMuted}>{local.model.parsed().provider}</text>
-              <Show when={showVariant()}>
-                <text fg={theme.textMuted}>·</text>
-                <text>
-                  <span style={{ fg: theme.warning, bold: true }}>{local.model.variant.current()}</span>
-                </text>
-              </Show>
-            </Show>
-          </box>
-          <box gap={2} flexDirection="row">
-            <Switch>
-              <Match when={store.mode === "normal"}>
-                <text fg={theme.text}>
-                  {keybind.print("agent_cycle")} <span style={{ fg: theme.textMuted }}>agent</span>
-                </text>
-                <text fg={theme.text}>
-                  {keybind.print("command_list")} <span style={{ fg: theme.textMuted }}>commands</span>
-                </text>
-              </Match>
-              <Match when={store.mode === "shell"}>
-                <text fg={theme.text}>
-                  esc <span style={{ fg: theme.textMuted }}>exit shell</span>
-                </text>
-              </Match>
-            </Switch>
-          </box>
-        </box>
         {/* Input box */}
         <box
-          marginTop={1}
           border={["left"]}
           borderColor={highlight()}
           customBorderChars={{
@@ -795,7 +757,6 @@ export function Prompt(props: PromptProps) {
             paddingLeft={2}
             paddingRight={1}
             paddingTop={1}
-            paddingBottom={1}
             flexShrink={0}
             backgroundColor={theme.backgroundElement}
             flexGrow={1}
@@ -944,6 +905,43 @@ export function Prompt(props: PromptProps) {
               cursorColor={theme.text}
               syntaxStyle={syntax()}
             />
+            {/* Info row: model/status on left, commands on right */}
+            <box flexDirection="row" justifyContent="space-between" paddingTop={1} paddingBottom={1} paddingRight={1}>
+              <box flexDirection="row" gap={1}>
+                <text fg={highlight()}>
+                  {store.mode === "shell" ? "Shell" : Locale.titlecase(local.agent.current().name)}
+                </text>
+                <Show when={store.mode === "normal"}>
+                  <text flexShrink={0} fg={theme.textMuted}>
+                    {local.model.parsed().model}
+                  </text>
+                  <text fg={theme.textMuted}>{local.model.parsed().provider}</text>
+                  <Show when={showVariant()}>
+                    <text fg={theme.textMuted}>·</text>
+                    <text>
+                      <span style={{ fg: theme.warning, bold: true }}>{local.model.variant.current()}</span>
+                    </text>
+                  </Show>
+                </Show>
+              </box>
+              <box gap={2} flexDirection="row">
+                <Switch>
+                  <Match when={store.mode === "normal"}>
+                    <text fg={theme.text}>
+                      {keybind.print("agent_cycle")} <span style={{ fg: theme.textMuted }}>agent</span>
+                    </text>
+                    <text fg={theme.text}>
+                      {keybind.print("command_list")} <span style={{ fg: theme.textMuted }}>commands</span>
+                    </text>
+                  </Match>
+                  <Match when={store.mode === "shell"}>
+                    <text fg={theme.text}>
+                      esc <span style={{ fg: theme.textMuted }}>exit shell</span>
+                    </text>
+                  </Match>
+                </Switch>
+              </box>
+            </box>
           </box>
         </box>
       </box>
