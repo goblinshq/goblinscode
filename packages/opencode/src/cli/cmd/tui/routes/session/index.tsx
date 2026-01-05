@@ -1215,7 +1215,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
               <span style={{ fg: local.agent.color(props.message.agent) }}>{Locale.titlecase(props.message.mode)}</span>
               <span style={{ fg: theme.textMuted }}> · </span>
             </text>
-            <Show when={final()} fallback={<ShimmerText text={props.message.modelID} />}>
+            <Show when={final()} fallback={<text fg={theme.textMuted}>{props.message.modelID}</text>}>
               <text>
                 <span style={{ fg: theme.textMuted }}>{props.message.modelID}</span>
                 <Show when={duration()}>

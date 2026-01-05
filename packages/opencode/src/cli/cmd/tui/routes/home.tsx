@@ -94,7 +94,7 @@ export function Home() {
     <>
       <box flexGrow={1} justifyContent="center" alignItems="center" paddingLeft={2} paddingRight={2} gap={1}>
         <Logo />
-        <box width="100%" maxWidth={75} zIndex={1000} paddingTop={1}>
+        <box width="100%" zIndex={1000} paddingTop={1}>
           <Prompt
             ref={(r) => {
               prompt = r
