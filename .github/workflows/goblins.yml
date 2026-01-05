@@ -3,7 +3,7 @@ name: goblins
 on:
   push:
     branches:
-      - goblins
+      - main
   workflow_dispatch:
 
 permissions:
@@ -78,7 +78,7 @@ jobs:
           body: |
             Latest goblins build - auto-updated on push to goblins branch.
 
-            Install: `curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/goblins/install | bash`
+            Install: `curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/main/install | bash`
           files: release/*
           prerelease: true
           make_latest: false
