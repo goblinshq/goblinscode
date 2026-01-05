@@ -693,11 +693,12 @@ export function Prompt(props: PromptProps) {
     return local.agent.color(local.agent.current().name)
   })
 
-  const showVariant = createMemo(() => {
+  const variantDisplay = createMemo(() => {
     const variants = local.model.variant.list()
-    if (variants.length === 0) return false
+    if (variants.length === 0) return null
     const current = local.model.variant.current()
-    return !!current
+    if (current) return { type: "current" as const, value: current }
+    return { type: "hint" as const }
   })
 
   const spinnerDef = createMemo(() => {
@@ -916,11 +917,20 @@ export function Prompt(props: PromptProps) {
                     {local.model.parsed().model}
                   </text>
                   <text fg={theme.textMuted}>{local.model.parsed().provider}</text>
-                  <Show when={showVariant()}>
+                  <Show when={variantDisplay()}>
                     <text fg={theme.textMuted}>·</text>
-                    <text>
-                      <span style={{ fg: theme.warning, bold: true }}>{local.model.variant.current()}</span>
-                    </text>
+                    <Switch>
+                      <Match when={variantDisplay()?.type === "current"}>
+                        <text>
+                          <span style={{ fg: theme.warning, bold: true }}>{variantDisplay()?.value}</span>
+                        </text>
+                      </Match>
+                      <Match when={variantDisplay()?.type === "hint"}>
+                        <text fg={theme.textMuted}>
+                          {keybind.print("variant_cycle")} <span style={{ fg: theme.textMuted }}>thinking</span>
+                        </text>
+                      </Match>
+                    </Switch>
                   </Show>
                 </Show>
               </box>
