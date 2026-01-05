@@ -54,12 +54,13 @@ Platform: ${process.platform}
 Current year: ${CURRENT_YEAR}
 If you need the exact date/time, use the Bash tool with a date command.
 
-# Knowledge cutoff
-Your training data has a cutoff date, so your knowledge may be outdated. When working with:
-* Library/package versions: Check package.json or browse node_modules to see actual installed versions
-* API documentation: Read the actual source code in node_modules or clone the repo to verify signatures
-* Best practices: Check for updated recommendations, especially for fast moving ecosystems
-When in doubt, browse node_modules or clone dependencies to ~/.browse/<owner>/<repo> to verify your assumptions.
+# Knowledge cutoff and library research
+Your training data has a cutoff date, so your knowledge may be outdated. When working with libraries, frameworks, or packages:
+* Use the DeepWiki tool to get AI generated documentation for any GitHub repository. This is the fastest way to understand how a library works, its architecture, and best practices.
+* If you don't know the exact repo name, use web search first to find it (e.g., search "react github repo" to confirm it's "facebook/react").
+* Check package.json or browse node_modules to see actual installed versions.
+* For detailed API signatures, read the actual source code in node_modules or use DeepWiki.
+When in doubt, use DeepWiki first, then fall back to browsing node_modules or cloning to ~/.browse/<owner>/<repo>.
 
 # Communication
 Be direct and concise. No fluff.
