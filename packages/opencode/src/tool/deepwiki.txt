@@ -1,0 +1,14 @@
+Query DeepWiki to get AI-generated documentation and explanations for any public GitHub repository.
+
+Use this tool to:
+- Understand how a library, framework, or SDK works
+- Get an overview of a repository's architecture and structure
+- Ask specific questions about a codebase (e.g., "How does authentication work in this repo?")
+- Learn about APIs, patterns, and best practices used in open source projects
+
+The tool accesses DeepWiki's AI-powered documentation which provides context-grounded answers based on the actual source code.
+
+Usage notes:
+- Provide the repository in the format "owner/repo" (e.g., "facebook/react", "vercel/next.js")
+- Ask specific questions to get more targeted answers
+- For general understanding, ask about architecture, main concepts, or how to get started
