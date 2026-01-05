@@ -1940,7 +1940,7 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
 }
 
 function Skill(props: ToolProps<any>) {
-  const name = (props.input as any).name ?? "skill"
+  const name = (props.input as any)?.name || (props.metadata as any)?.name || "skill"
   return (
     <InlineTool icon="🧠" pending={name} complete={name} part={props.part}>
       {name}
