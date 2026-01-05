@@ -8,28 +8,29 @@ import path from "path"
 import os from "os"
 
 // Based on Claude Code's system prompt: https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/system-prompt-main-system-prompt.md
-import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
-import PROMPT_ANTHROPIC_WITHOUT_TODO from "./prompt/qwen.txt"
-import PROMPT_BEAST from "./prompt/beast.txt"
-import PROMPT_GEMINI from "./prompt/gemini.txt"
+// import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
+// import PROMPT_ANTHROPIC_WITHOUT_TODO from "./prompt/qwen.txt"
+import PROMPT_GOBLINS from "./prompt/goblins.txt"
+// import PROMPT_GEMINI from "./prompt/gemini.txt"
 import PROMPT_ANTHROPIC_SPOOF from "./prompt/anthropic_spoof.txt"
-
-import PROMPT_CODEX from "./prompt/codex.txt"
+// import PROMPT_CODEX from "./prompt/codex.txt"
 import type { Provider } from "@/provider/provider"
 
 export namespace SystemPrompt {
+  // Tells Claude it's "Claude Code" for better behavior
   export function header(providerID: string) {
     if (providerID.includes("anthropic")) return [PROMPT_ANTHROPIC_SPOOF.trim()]
     return []
   }
 
-  export function provider(model: Provider.Model) {
-    if (model.api.id.includes("gpt-5")) return [PROMPT_CODEX]
-    if (model.api.id.includes("gpt-") || model.api.id.includes("o1") || model.api.id.includes("o3"))
-      return [PROMPT_BEAST]
-    if (model.api.id.includes("gemini-")) return [PROMPT_GEMINI]
-    if (model.api.id.includes("claude")) return [PROMPT_ANTHROPIC]
-    return [PROMPT_ANTHROPIC_WITHOUT_TODO]
+  export function provider(_model: Provider.Model) {
+    return [PROMPT_GOBLINS]
+    // if (model.api.id.includes("gpt-5")) return [PROMPT_CODEX]
+    // if (model.api.id.includes("gpt-") || model.api.id.includes("o1") || model.api.id.includes("o3"))
+    //   return [PROMPT_ANTHROPIC]
+    // if (model.api.id.includes("gemini-")) return [PROMPT_GEMINI]
+    // if (model.api.id.includes("claude")) return [PROMPT_ANTHROPIC]
+    // return [PROMPT_ANTHROPIC_WITHOUT_TODO]
   }
 
   export async function environment() {

@@ -1626,12 +1626,7 @@ function Bash(props: ToolProps<typeof BashTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool
-          icon="⚡"
-          pending={props.input.command ?? "Running command…"}
-          complete={props.input.command}
-          part={props.part}
-        >
+        <InlineTool icon="⚡" pending={props.input.command ?? "…"} complete={props.input.command} part={props.part}>
           {props.input.command}
         </InlineTool>
       </Match>
@@ -1891,11 +1886,11 @@ function Edit(props: ToolProps<typeof EditTool>) {
       <Match when={true}>
         <InlineTool
           icon="✏️"
-          pending={`Edit ${props.input.filePath ? normalizePath(props.input.filePath) : "…"}`}
+          pending={props.input.filePath ? normalizePath(props.input.filePath) : "…"}
           complete={props.input.filePath}
           part={props.part}
         >
-          Edit {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
+          {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
         </InlineTool>
       </Match>
     </Switch>
