@@ -1398,7 +1398,13 @@ function OutputPreview(props: { output?: string; lines?: number }) {
 
   return (
     <Show when={preview()}>
-      <box paddingLeft={6} marginTop={0}>
+      <box
+        border={["left"]}
+        paddingLeft={2}
+        marginLeft={3}
+        customBorderChars={SplitBorder.customBorderChars}
+        borderColor={theme.backgroundElement}
+      >
         <text fg={theme.textMuted} attributes={TextAttributes.DIM}>
           {preview()}
         </text>
