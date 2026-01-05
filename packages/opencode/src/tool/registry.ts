@@ -117,11 +117,12 @@ export namespace ToolRegistry {
 
   export async function tools(providerID: string, agent?: Agent.Info) {
     const tools = await all()
+
     const result = await Promise.all(
       tools
         .filter((t) => {
-          // Disable exa websearch/codesearch - use deepwiki instead
-          if (t.id === "codesearch" || t.id === "websearch") {
+          // Disable codesearch (Exa) - use deepwiki instead
+          if (t.id === "codesearch") {
             return false
           }
           return true
