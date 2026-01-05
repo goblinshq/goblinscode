@@ -68,15 +68,18 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=$(date +%Y%m%d%H%M)" >> $GITHUB_OUTPUT
+        run: |
+          chmod +x release/gcode-linux-x64
+          VERSION=$(./release/gcode-linux-x64 --version 2>/dev/null || echo "unknown")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create/Update Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: goblins-latest
-          name: Goblins Latest
+          name: ${{ steps.version.outputs.version }}
           body: |
-            Latest goblins build - auto-updated on push to goblins branch.
+            Version: ${{ steps.version.outputs.version }}
 
             Install: `curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/main/install | bash`
           files: release/*
