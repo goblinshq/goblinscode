@@ -81,7 +81,7 @@ jobs:
           body: |
             Version: ${{ steps.version.outputs.version }}
 
-            Install: `curl -fsSL https://raw.githubusercontent.com/Karavil/opencode/main/install | bash`
+            Install: `curl -fsSL https://raw.githubusercontent.com/goblinshq/goblinscode/main/install | bash`
           files: release/*
           prerelease: true
           make_latest: false
