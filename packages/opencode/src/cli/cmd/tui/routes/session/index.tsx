@@ -1683,12 +1683,12 @@ function Write(props: ToolProps<typeof WriteTool>) {
 function Glob(props: ToolProps<typeof GlobTool>) {
   const pending = createMemo(() => {
     const p = props.input.path ? ` in ${normalizePath(props.input.path)}` : ""
-    return `Glob "${props.input.pattern ?? "…"}"${p}`
+    return `${props.input.pattern ?? "…"}${p}`
   })
   return (
     <InlineTool icon="📁" pending={pending()} complete={props.input.pattern} part={props.part}>
-      Glob "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
-      <Show when={props.metadata.count}>({props.metadata.count} matches)</Show>
+      {props.input.pattern} <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
+      <Show when={props.metadata.count}>({props.metadata.count})</Show>
     </InlineTool>
   )
 }
@@ -1696,12 +1696,12 @@ function Glob(props: ToolProps<typeof GlobTool>) {
 function Read(props: ToolProps<typeof ReadTool>) {
   return (
     <InlineTool
-      icon="📄"
-      pending={`Read ${normalizePath(props.input.filePath!)}`}
+      icon="👀"
+      pending={normalizePath(props.input.filePath!)}
       complete={props.input.filePath}
       part={props.part}
     >
-      Read {normalizePath(props.input.filePath!)} {input(props.input, ["filePath"])}
+      {normalizePath(props.input.filePath!)} {input(props.input, ["filePath"])}
     </InlineTool>
   )
 }
@@ -1709,12 +1709,12 @@ function Read(props: ToolProps<typeof ReadTool>) {
 function Grep(props: ToolProps<typeof GrepTool>) {
   const pending = createMemo(() => {
     const p = props.input.path ? ` in ${normalizePath(props.input.path)}` : ""
-    return `Grep "${props.input.pattern ?? "…"}"${p}`
+    return `"${props.input.pattern ?? "…"}"${p}`
   })
   return (
     <InlineTool icon="🔍" pending={pending()} complete={props.input.pattern} part={props.part}>
-      Grep "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
-      <Show when={props.metadata.matches}>({props.metadata.matches} matches)</Show>
+      "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
+      <Show when={props.metadata.matches}>({props.metadata.matches})</Show>
     </InlineTool>
   )
 }
