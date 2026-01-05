@@ -1364,6 +1364,9 @@ function ToolPart(props: { last: boolean; part: ToolPart; message: AssistantMess
       <Match when={props.part.tool === "websearch"}>
         <WebSearch {...toolprops} />
       </Match>
+      <Match when={props.part.tool === "deepwiki"}>
+        <DeepWiki {...toolprops} />
+      </Match>
       <Match when={props.part.tool === "write"}>
         <Write {...toolprops} />
       </Match>
@@ -1774,6 +1777,20 @@ function WebSearch(props: ToolProps<any>) {
   return (
     <InlineTool icon="🌐" pending={`Web Search "${input.query ?? "…"}"`} complete={input.query} part={props.part}>
       Web Search "{input.query}" <Show when={metadata.numResults}>({metadata.numResults} results)</Show>
+    </InlineTool>
+  )
+}
+
+function DeepWiki(props: ToolProps<any>) {
+  const input = props.input as any
+  const pending = createMemo(() => {
+    const repo = input.repo ?? "…"
+    const question = input.question ? ` "${input.question.slice(0, 50)}${input.question.length > 50 ? "…" : ""}"` : ""
+    return `${repo}${question}`
+  })
+  return (
+    <InlineTool icon="📚" pending={pending()} complete={input.repo && input.question} part={props.part}>
+      {input.repo} "{input.question}"
     </InlineTool>
   )
 }
