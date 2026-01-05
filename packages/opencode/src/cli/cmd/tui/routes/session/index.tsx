@@ -23,6 +23,7 @@ import {
   MacOSScrollAccel,
   type ScrollAcceleration,
   TextAttributes,
+  RGBA,
 } from "@opentui/core"
 import { Prompt, type PromptRef } from "@tui/component/prompt"
 import type { AssistantMessage, Part, ToolPart, UserMessage, TextPart, ReasoningPart } from "@opencode-ai/sdk/v2"
@@ -61,6 +62,7 @@ import parsers from "../../../../../../parsers-config.ts"
 import { Clipboard } from "../../util/clipboard"
 import { Toast, useToast } from "../../ui/toast"
 import { useKV } from "../../context/kv.tsx"
+import "opentui-spinner/solid"
 import { Editor } from "../../util/editor"
 import stripAnsi from "strip-ansi"
 import { Footer } from "./footer.tsx"
@@ -1403,11 +1405,46 @@ function ToolTitle(props: { fallback: string; when: any; icon: string; children:
   )
 }
 
+import type { ColorGenerator } from "opentui-spinner"
+
+function createShimmer(baseColor: RGBA, highlightColor: RGBA, width: number = 3, pause: number = 8): ColorGenerator {
+  return (frameIndex, charIndex, _totalFrames, totalChars) => {
+    // Total cycle: start off-left, move across, end off-right, then pause
+    const cycleLength = totalChars + width * 2 + pause
+    const frame = frameIndex % cycleLength
+
+    // Position starts at -width (off-screen left) and moves right
+    const pos = frame - width
+
+    // During pause phase, shimmer is off-screen
+    if (frame >= totalChars + width * 2) {
+      return baseColor
+    }
+
+    const dist = charIndex - pos
+    if (dist >= 0 && dist < width) {
+      // Ease-out cubic for more natural falloff
+      const linear = 1 - dist / width
+      const t = 1 - Math.pow(1 - linear, 3)
+      return RGBA.fromValues(
+        baseColor.r + (highlightColor.r - baseColor.r) * t,
+        baseColor.g + (highlightColor.g - baseColor.g) * t,
+        baseColor.b + (highlightColor.b - baseColor.b) * t,
+        1,
+      )
+    }
+    return baseColor
+  }
+}
+
 function InlineTool(props: { icon: string; complete: any; pending: string; children: JSX.Element; part: ToolPart }) {
   const [margin, setMargin] = createSignal(0)
   const { theme } = useTheme()
   const ctx = use()
   const sync = useSync()
+  const kv = useKV()
+
+  const animationsEnabled = createMemo(() => kv.get("animations_enabled", true))
 
   const permission = createMemo(() => {
     const callID = sync.data.permission[ctx.sessionID]?.at(0)?.tool?.callID
@@ -1415,15 +1452,29 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
     return callID === props.part.callID
   })
 
+  const isRunning = createMemo(() => props.part.state.status === "running" || props.part.state.status === "pending")
+
   const fg = createMemo(() => {
     if (permission()) return theme.warning
-    if (props.complete) return theme.textMuted
+    if (props.complete && !isRunning()) return theme.textMuted
     return theme.text
   })
 
   const error = createMemo(() => (props.part.state.status === "error" ? props.part.state.error : undefined))
 
   const denied = createMemo(() => error()?.includes("rejected permission") || error()?.includes("specified a rule"))
+
+  const shimmerText = createMemo(() => {
+    const text = `${props.icon} ${props.pending}`
+    return text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥")
+  })
+
+  const shimmerFrames = createMemo(() => {
+    const text = shimmerText()
+    return Array.from({ length: text.length + 6 }, () => text)
+  })
+
+  const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, 4))
 
   return (
     <box
@@ -1452,11 +1503,19 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
         }
       }}
     >
-      <text paddingLeft={3} fg={fg()} attributes={denied() ? TextAttributes.STRIKETHROUGH : undefined}>
-        <Show fallback={<>~ {props.pending}</>} when={props.complete}>
-          <span style={{ bold: true }}>{props.icon}</span> {props.children}
-        </Show>
-      </text>
+      <Show
+        when={isRunning() && animationsEnabled()}
+        fallback={
+          <text fg={fg()} attributes={denied() ? TextAttributes.STRIKETHROUGH : undefined}>
+            <span style={{ bold: true }}>{props.icon}</span>{" "}
+            <Show fallback={props.pending} when={props.complete}>
+              {props.children}
+            </Show>
+          </text>
+        }
+      >
+        <spinner frames={shimmerFrames()} interval={29} color={shimmerColor()} />
+      </Show>
       <Show when={error() && !denied()}>
         <text fg={theme.error}>{error()}</text>
       </Show>
@@ -1512,7 +1571,7 @@ function Bash(props: ToolProps<typeof BashTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="$" pending="Writing command..." complete={props.input.command} part={props.part}>
+        <InlineTool icon="⚡" pending="Writing command..." complete={props.input.command} part={props.part}>
           {props.input.command}
         </InlineTool>
       </Match>
@@ -1557,7 +1616,7 @@ function Write(props: ToolProps<typeof WriteTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="←" pending="Preparing write..." complete={props.input.filePath} part={props.part}>
+        <InlineTool icon="📝" pending="Preparing write..." complete={props.input.filePath} part={props.part}>
           Write {normalizePath(props.input.filePath!)}
         </InlineTool>
       </Match>
@@ -1567,7 +1626,7 @@ function Write(props: ToolProps<typeof WriteTool>) {
 
 function Glob(props: ToolProps<typeof GlobTool>) {
   return (
-    <InlineTool icon="✱" pending="Finding files..." complete={props.input.pattern} part={props.part}>
+    <InlineTool icon="📁" pending="Finding files..." complete={props.input.pattern} part={props.part}>
       Glob "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
       <Show when={props.metadata.count}>({props.metadata.count} matches)</Show>
     </InlineTool>
@@ -1576,7 +1635,7 @@ function Glob(props: ToolProps<typeof GlobTool>) {
 
 function Read(props: ToolProps<typeof ReadTool>) {
   return (
-    <InlineTool icon="→" pending="Reading file..." complete={props.input.filePath} part={props.part}>
+    <InlineTool icon="📄" pending="Reading file..." complete={props.input.filePath} part={props.part}>
       Read {normalizePath(props.input.filePath!)} {input(props.input, ["filePath"])}
     </InlineTool>
   )
@@ -1584,7 +1643,7 @@ function Read(props: ToolProps<typeof ReadTool>) {
 
 function Grep(props: ToolProps<typeof GrepTool>) {
   return (
-    <InlineTool icon="✱" pending="Searching content..." complete={props.input.pattern} part={props.part}>
+    <InlineTool icon="🔍" pending="Searching content..." complete={props.input.pattern} part={props.part}>
       Grep "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
       <Show when={props.metadata.matches}>({props.metadata.matches} matches)</Show>
     </InlineTool>
@@ -1599,17 +1658,39 @@ function List(props: ToolProps<typeof ListTool>) {
     return ""
   })
   return (
-    <InlineTool icon="→" pending="Listing directory..." complete={props.input.path !== undefined} part={props.part}>
+    <InlineTool icon="📂" pending="Listing directory..." complete={props.input.path !== undefined} part={props.part}>
       List {dir()}
     </InlineTool>
   )
 }
 
 function WebFetch(props: ToolProps<typeof WebFetchTool>) {
+  const { theme } = useTheme()
+  const preview = createMemo(() => {
+    if (!props.output) return undefined
+    const lines = props.output.split("\n").slice(0, 8)
+    const text = lines.join("\n")
+    return text.length > 500 ? text.slice(0, 500) + "..." : text + (props.output.split("\n").length > 8 ? "\n..." : "")
+  })
+
   return (
-    <InlineTool icon="%" pending="Fetching from the web..." complete={(props.input as any).url} part={props.part}>
-      WebFetch {(props.input as any).url}
-    </InlineTool>
+    <box>
+      <InlineTool icon="🔎" pending="Fetching..." complete={(props.input as any).url} part={props.part}>
+        Fetch {(props.input as any).url}
+      </InlineTool>
+      <Show when={preview()}>
+        <box
+          border={["left"]}
+          paddingLeft={2}
+          marginLeft={3}
+          marginTop={1}
+          customBorderChars={SplitBorder.customBorderChars}
+          borderColor={theme.backgroundElement}
+        >
+          <text fg={theme.textMuted}>{preview()}</text>
+        </box>
+      </Show>
+    </box>
   )
 }
 
@@ -1617,8 +1698,8 @@ function CodeSearch(props: ToolProps<any>) {
   const input = props.input as any
   const metadata = props.metadata as any
   return (
-    <InlineTool icon="◇" pending="Searching code..." complete={input.query} part={props.part}>
-      Exa Code Search "{input.query}" <Show when={metadata.results}>({metadata.results} results)</Show>
+    <InlineTool icon="💻" pending="Searching code..." complete={input.query} part={props.part}>
+      Code Search "{input.query}" <Show when={metadata.results}>({metadata.results} results)</Show>
     </InlineTool>
   )
 }
@@ -1627,8 +1708,8 @@ function WebSearch(props: ToolProps<any>) {
   const input = props.input as any
   const metadata = props.metadata as any
   return (
-    <InlineTool icon="◈" pending="Searching web..." complete={input.query} part={props.part}>
-      Exa Web Search "{input.query}" <Show when={metadata.numResults}>({metadata.numResults} results)</Show>
+    <InlineTool icon="🌐" pending="Searching web..." complete={input.query} part={props.part}>
+      Web Search "{input.query}" <Show when={metadata.numResults}>({metadata.numResults} results)</Show>
     </InlineTool>
   )
 }
@@ -1671,12 +1752,12 @@ function Task(props: ToolProps<typeof TaskTool>) {
       </Match>
       <Match when={true}>
         <InlineTool
-          icon="◉"
+          icon="🤖"
           pending="Delegating..."
           complete={props.input.subagent_type ?? props.input.description}
           part={props.part}
         >
-          {Locale.titlecase(props.input.subagent_type ?? "unknown")} Task "{props.input.description}"
+          {Locale.titlecase(props.input.subagent_type ?? "unknown")} "{props.input.description}"
         </InlineTool>
       </Match>
     </Switch>
@@ -1744,7 +1825,7 @@ function Edit(props: ToolProps<typeof EditTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="←" pending="Preparing edit..." complete={props.input.filePath} part={props.part}>
+        <InlineTool icon="✏️" pending="Preparing edit..." complete={props.input.filePath} part={props.part}>
           Edit {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
         </InlineTool>
       </Match>
@@ -1764,7 +1845,7 @@ function Patch(props: ToolProps<typeof PatchTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="%" pending="Preparing patch..." complete={false} part={props.part}>
+        <InlineTool icon="🩹" pending="Preparing patch..." complete={false} part={props.part}>
           Patch
         </InlineTool>
       </Match>
@@ -1785,7 +1866,7 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="⚙" pending="Updating todos..." complete={false} part={props.part}>
+        <InlineTool icon="✅" pending="Updating todos..." complete={false} part={props.part}>
           Updating todos...
         </InlineTool>
       </Match>
