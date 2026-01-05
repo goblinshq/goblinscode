@@ -1386,26 +1386,22 @@ type ToolProps<T extends Tool.Info> = {
   output?: string
   part: ToolPart
 }
-function OutputPreview(props: { output?: string }) {
+function OutputPreview(props: { output?: string; lines?: number }) {
   const { theme } = useTheme()
+  const maxLines = props.lines ?? 3
   const preview = createMemo(() => {
     if (!props.output) return undefined
-    const lines = props.output.split("\n").slice(0, 8)
+    const lines = props.output.split("\n").slice(0, maxLines)
     const text = lines.join("\n")
-    return text.length > 500 ? text.slice(0, 500) + "…" : text + (props.output.split("\n").length > 8 ? "\n…" : "")
+    return text.length > 200 ? text.slice(0, 200) + "…" : text + (props.output.split("\n").length > maxLines ? "…" : "")
   })
 
   return (
     <Show when={preview()}>
-      <box
-        border={["left"]}
-        paddingLeft={2}
-        marginLeft={3}
-        marginTop={1}
-        customBorderChars={SplitBorder.customBorderChars}
-        borderColor={theme.backgroundElement}
-      >
-        <text fg={theme.textMuted}>{preview()}</text>
+      <box paddingLeft={6} marginTop={0}>
+        <text fg={theme.textMuted} attributes={TextAttributes.DIM}>
+          {preview()}
+        </text>
       </box>
     </Show>
   )
