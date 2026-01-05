@@ -143,6 +143,7 @@ export function Session() {
   const [showScrollbar, setShowScrollbar] = createSignal(kv.get("scrollbar_visible", false))
   const [diffWrapMode, setDiffWrapMode] = createSignal<"word" | "none">("word")
   const [animationsEnabled, setAnimationsEnabled] = createSignal(kv.get("animations_enabled", true))
+  const [interrupt, setInterrupt] = createSignal(0)
 
   const wide = createMemo(() => dimensions().width > 120)
   const sidebarVisible = createMemo(() => {
@@ -907,7 +908,7 @@ export function Session() {
       }}
     >
       <box flexDirection="row">
-        <box flexGrow={1} paddingBottom={1} paddingTop={1} paddingLeft={2} paddingRight={2} gap={1}>
+        <box flexGrow={1} paddingTop={1} paddingLeft={2} paddingRight={2} gap={1}>
           <Show when={session()}>
             <Show when={!sidebarVisible()}>
               <Header />
@@ -1040,11 +1041,12 @@ export function Session() {
                 onSubmit={() => {
                   toBottom()
                 }}
+                onInterruptChange={setInterrupt}
                 sessionID={route.sessionID}
               />
             </box>
             <Show when={!sidebarVisible()}>
-              <Footer />
+              <Footer interrupt={interrupt()} />
             </Show>
           </Show>
           <Toast />
