@@ -1104,15 +1104,12 @@ function UserMessage(props: {
               setHover(false)
             }}
             onMouseUp={props.onMouseUp}
-            paddingTop={1}
-            paddingBottom={1}
             paddingLeft={2}
-            backgroundColor={hover() ? theme.backgroundElement : theme.backgroundPanel}
             flexShrink={0}
           >
             <text fg={theme.text}>{text()?.text}</text>
             <Show when={files().length}>
-              <box flexDirection="row" paddingBottom={1} paddingTop={1} gap={1} flexWrap="wrap">
+              <box flexDirection="row" paddingTop={1} gap={1} flexWrap="wrap">
                 <For each={files()}>
                   {(file) => {
                     const bg = createMemo(() => {
@@ -1130,23 +1127,11 @@ function UserMessage(props: {
                 </For>
               </box>
             </Show>
-            <text fg={theme.textMuted}>
-              {ctx.usernameVisible() ? `${sync.data.config.username ?? "You "}` : "You "}
-              <Show
-                when={queued()}
-                fallback={
-                  <Show when={ctx.showTimestamps()}>
-                    <span style={{ fg: theme.textMuted }}>
-                      {ctx.usernameVisible() ? " · " : " "}
-                      {Locale.todayTimeOrDateTime(props.message.time.created)}
-                    </span>
-                  </Show>
-                }
-              >
-                <span> </span>
+            <Show when={queued()}>
+              <text fg={theme.textMuted}>
                 <span style={{ bg: theme.accent, fg: theme.backgroundPanel, bold: true }}> QUEUED </span>
-              </Show>
-            </text>
+              </text>
+            </Show>
           </box>
         </box>
       </Show>
@@ -1414,26 +1399,24 @@ function OutputPreview(props: { output?: string; lines?: number; full?: boolean;
   return (
     <Show when={preview()}>
       <ToolContainer>
-        <box paddingTop={1} paddingBottom={1}>
-          <Show
-            when={props.filetype}
-            fallback={
-              <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
-                {preview()}
-              </text>
-            }
-          >
-            <box paddingLeft={3}>
-              <code
-                filetype={props.filetype}
-                drawUnstyledText={false}
-                syntaxStyle={syntax()}
-                content={preview()!}
-                fg={theme.textMuted}
-              />
-            </box>
-          </Show>
-        </box>
+        <Show
+          when={props.filetype}
+          fallback={
+            <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
+              {preview()}
+            </text>
+          }
+        >
+          <box paddingLeft={3}>
+            <code
+              filetype={props.filetype}
+              drawUnstyledText={false}
+              syntaxStyle={syntax()}
+              content={preview()!}
+              fg={theme.textMuted}
+            />
+          </box>
+        </Show>
       </ToolContainer>
     </Show>
   )
