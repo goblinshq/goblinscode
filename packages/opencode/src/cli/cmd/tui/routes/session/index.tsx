@@ -1371,6 +1371,9 @@ function ToolPart(props: { last: boolean; part: ToolPart; message: AssistantMess
       <Match when={props.part.tool === "todowrite"}>
         <TodoWrite {...toolprops} />
       </Match>
+      <Match when={props.part.tool === "skill"}>
+        <Skill {...toolprops} />
+      </Match>
       <Match when={true}>
         <GenericTool {...toolprops} />
       </Match>
@@ -1398,17 +1401,11 @@ function OutputPreview(props: { output?: string; lines?: number }) {
 
   return (
     <Show when={preview()}>
-      <box
-        border={["left"]}
-        paddingLeft={2}
-        backgroundColor={theme.backgroundPanel}
-        customBorderChars={SplitBorder.customBorderChars}
-        borderColor={theme.background}
-      >
+      <ToolContainer>
         <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
           {preview()}
         </text>
-      </box>
+      </ToolContainer>
     </Show>
   )
 }
@@ -1569,19 +1566,17 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
   )
 }
 
-function BlockTool(props: { title: string; children: JSX.Element; onClick?: () => void; part?: ToolPart }) {
+function ToolContainer(props: { children: JSX.Element; onClick?: () => void }) {
   const { theme } = useTheme()
   const renderer = useRenderer()
   const [hover, setHover] = createSignal(false)
-  const error = createMemo(() => (props.part?.state.status === "error" ? props.part.state.error : undefined))
   return (
     <box
       border={["left"]}
-      paddingTop={1}
-      paddingBottom={1}
+      paddingTop={0}
+      paddingBottom={0}
       paddingLeft={2}
       marginTop={1}
-      gap={1}
       backgroundColor={hover() ? theme.backgroundMenu : theme.backgroundPanel}
       customBorderChars={SplitBorder.customBorderChars}
       borderColor={theme.background}
@@ -1592,6 +1587,16 @@ function BlockTool(props: { title: string; children: JSX.Element; onClick?: () =
         props.onClick?.()
       }}
     >
+      {props.children}
+    </box>
+  )
+}
+
+function BlockTool(props: { title: string; children: JSX.Element; onClick?: () => void; part?: ToolPart }) {
+  const { theme } = useTheme()
+  const error = createMemo(() => (props.part?.state.status === "error" ? props.part.state.error : undefined))
+  return (
+    <ToolContainer onClick={props.onClick}>
       <text paddingLeft={3} fg={theme.textMuted}>
         {props.title}
       </text>
@@ -1599,7 +1604,7 @@ function BlockTool(props: { title: string; children: JSX.Element; onClick?: () =
       <Show when={error()}>
         <text fg={theme.error}>{error()}</text>
       </Show>
-    </box>
+    </ToolContainer>
   )
 }
 
@@ -1931,6 +1936,15 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
         </InlineTool>
       </Match>
     </Switch>
+  )
+}
+
+function Skill(props: ToolProps<any>) {
+  const name = (props.input as any).name ?? "skill"
+  return (
+    <InlineTool icon="🧠" pending={name} complete={name} part={props.part}>
+      {name}
+    </InlineTool>
   )
 }
 
