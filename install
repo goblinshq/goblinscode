@@ -40,27 +40,31 @@ url="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/${asset_name}"
 
 echo -e "${MUTED}Downloading ${NC}${asset_name}${MUTED}...${NC}"
 
-# Download pre-built binary
+# Download to temp file first, then atomically move (safe for auto-update while running)
 mkdir -p "$INSTALL_DIR"
-if ! curl -sfL "$url" -o "$INSTALL_DIR/$BINARY_NAME"; then
+tmp_file="${TMPDIR:-/tmp}/gcode-download-$$"
+if ! curl -sfL "$url" -o "$tmp_file"; then
     echo -e "${RED}Failed to download binary from: $url${NC}"
     echo -e "${MUTED}Available platforms: darwin-arm64, linux-x64, linux-arm64${NC}"
+    rm -f "$tmp_file"
     exit 1
 fi
-chmod 755 "$INSTALL_DIR/$BINARY_NAME"
+chmod 755 "$tmp_file"
 
-# Remove quarantine/provenance attributes and re-sign on macOS
+# Remove quarantine/provenance attributes and sign on macOS (before moving)
 if [[ "$os" == "darwin" ]]; then
-    xattr -cr "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
-    if ! codesign -s - "$INSTALL_DIR/$BINARY_NAME" --force 2>/dev/null; then
+    xattr -cr "$tmp_file" 2>/dev/null || true
+    if ! codesign -s - "$tmp_file" --force 2>/dev/null; then
         echo -e "${RED}Warning: Failed to sign binary. gcode may not run.${NC}"
         echo -e "${MUTED}Install Xcode Command Line Tools and re-run this installer:${NC}"
         echo -e "  xcode-select --install"
         echo -e ""
     fi
-    # Remove attributes again after signing (codesign can re-add them)
-    xattr -cr "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || true
+    xattr -cr "$tmp_file" 2>/dev/null || true
 fi
+
+# Atomic move to final location
+mv -f "$tmp_file" "$INSTALL_DIR/$BINARY_NAME"
 
 version=$("$INSTALL_DIR/$BINARY_NAME" --version 2>/dev/null || echo "unknown")
 echo -e ""
