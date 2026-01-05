@@ -1400,11 +1400,12 @@ type ToolProps<T extends Tool.Info> = {
   output?: string
   part: ToolPart
 }
-function OutputPreview(props: { output?: string; lines?: number }) {
-  const { theme } = useTheme()
+function OutputPreview(props: { output?: string; lines?: number; full?: boolean; filetype?: string }) {
+  const { theme, syntax } = useTheme()
   const maxLines = props.lines ?? 3
   const preview = createMemo(() => {
     if (!props.output) return undefined
+    if (props.full) return props.output.trim()
     const lines = props.output.split("\n").slice(0, maxLines)
     const text = lines.join("\n")
     return text.length > 200 ? text.slice(0, 200) + "…" : text + (props.output.split("\n").length > maxLines ? "…" : "")
@@ -1413,9 +1414,26 @@ function OutputPreview(props: { output?: string; lines?: number }) {
   return (
     <Show when={preview()}>
       <ToolContainer>
-        <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
-          {preview()}
-        </text>
+        <box paddingTop={1} paddingBottom={1}>
+          <Show
+            when={props.filetype}
+            fallback={
+              <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
+                {preview()}
+              </text>
+            }
+          >
+            <box paddingLeft={3}>
+              <code
+                filetype={props.filetype}
+                drawUnstyledText={false}
+                syntaxStyle={syntax()}
+                content={preview()!}
+                fg={theme.textMuted}
+              />
+            </box>
+          </Show>
+        </box>
       </ToolContainer>
     </Show>
   )
@@ -1621,23 +1639,17 @@ function BlockTool(props: { title: string; children: JSX.Element; onClick?: () =
 
 function Bash(props: ToolProps<typeof BashTool>) {
   const output = createMemo(() => renderTerminal(props.metadata.output ?? ""))
-  const { theme } = useTheme()
+  const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
+
   return (
-    <Switch>
-      <Match when={props.metadata.output !== undefined}>
-        <BlockTool title="# Shell" part={props.part}>
-          <box gap={1}>
-            <text fg={theme.text}>$ {props.input.command}</text>
-            <text fg={theme.text}>{output()}</text>
-          </box>
-        </BlockTool>
-      </Match>
-      <Match when={true}>
-        <InlineTool icon="⚡" pending={props.input.command ?? "…"} complete={props.input.command} part={props.part}>
-          {props.input.command}
-        </InlineTool>
-      </Match>
-    </Switch>
+    <box>
+      <InlineTool icon="⚡" pending={props.input.command ?? "…"} complete={complete()} part={props.part}>
+        {props.input.command}
+      </InlineTool>
+      <Show when={complete()}>
+        <OutputPreview output={output()} full />
+      </Show>
+    </box>
   )
 }
 
@@ -1773,25 +1785,32 @@ function CodeSearch(props: ToolProps<any>) {
 
 function WebSearch(props: ToolProps<any>) {
   const input = props.input as any
-  const metadata = props.metadata as any
+  const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
   return (
-    <InlineTool icon="🌐" pending={`Web Search "${input.query ?? "…"}"`} complete={input.query} part={props.part}>
-      Web Search "{input.query}" <Show when={metadata.numResults}>({metadata.numResults} results)</Show>
-    </InlineTool>
+    <box>
+      <InlineTool icon="🔍" pending={input.query ?? "…"} complete={complete()} part={props.part}>
+        {input.query}
+      </InlineTool>
+      <OutputPreview output={props.output} filetype="json" />
+    </box>
   )
 }
 
 function DeepWiki(props: ToolProps<any>) {
   const input = props.input as any
+  const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
   const pending = createMemo(() => {
     const repo = input.repo ?? "…"
     const question = input.question ? ` "${input.question.slice(0, 50)}${input.question.length > 50 ? "…" : ""}"` : ""
     return `${repo}${question}`
   })
   return (
-    <InlineTool icon="📚" pending={pending()} complete={input.repo && input.question} part={props.part}>
-      {input.repo} "{input.question}"
-    </InlineTool>
+    <box>
+      <InlineTool icon="📚" pending={pending()} complete={complete()} part={props.part}>
+        {input.repo} "{input.question}"
+      </InlineTool>
+      <OutputPreview output={props.output} filetype="markdown" />
+    </box>
   )
 }
 
@@ -1800,48 +1819,47 @@ function Task(props: ToolProps<typeof TaskTool>) {
   const keybind = useKeybind()
   const { navigate } = useRoute()
 
+  const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
   const current = createMemo(() => props.metadata.summary?.findLast((x) => x.state.status !== "pending"))
+  const pending = createMemo(
+    () => `${Locale.titlecase(props.input.subagent_type ?? "Task")} "${props.input.description ?? "…"}"`,
+  )
+
+  const summary = createMemo(() => {
+    if (!props.metadata.summary?.length) return undefined
+    const lines = [`${props.input.description} (${props.metadata.summary.length} toolcalls)`]
+    if (current()) {
+      const status = current()!.state.status === "completed" ? current()!.state.title : ""
+      lines.push(`└ ${Locale.titlecase(current()!.tool)} ${status}`)
+    }
+    return lines.join("\n")
+  })
 
   return (
-    <Switch>
-      <Match when={props.metadata.summary?.length}>
-        <BlockTool
-          title={"# " + Locale.titlecase(props.input.subagent_type ?? "unknown") + " Task"}
+    <box>
+      <InlineTool icon="🤖" pending={pending()} complete={complete()} part={props.part}>
+        {Locale.titlecase(props.input.subagent_type ?? "unknown")} "{props.input.description}"
+      </InlineTool>
+      <Show when={complete() && summary()}>
+        <ToolContainer
           onClick={
             props.metadata.sessionId
               ? () => navigate({ type: "session", sessionID: props.metadata.sessionId! })
               : undefined
           }
-          part={props.part}
         >
-          <box>
-            <text style={{ fg: theme.textMuted }}>
-              {props.input.description} ({props.metadata.summary?.length} toolcalls)
+          <box paddingTop={1} paddingBottom={1}>
+            <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
+              {summary()}
             </text>
-            <Show when={current()}>
-              <text style={{ fg: current()!.state.status === "error" ? theme.error : theme.textMuted }}>
-                └ {Locale.titlecase(current()!.tool)}{" "}
-                {current()!.state.status === "completed" ? current()!.state.title : ""}
-              </text>
-            </Show>
+            <text paddingLeft={3} fg={theme.text}>
+              {keybind.print("session_child_cycle")}
+              <span style={{ fg: theme.textMuted }}> view subagents</span>
+            </text>
           </box>
-          <text fg={theme.text}>
-            {keybind.print("session_child_cycle")}
-            <span style={{ fg: theme.textMuted }}> view subagents</span>
-          </text>
-        </BlockTool>
-      </Match>
-      <Match when={true}>
-        <InlineTool
-          icon="🤖"
-          pending={`${Locale.titlecase(props.input.subagent_type ?? "Task")} "${props.input.description ?? "…"}"`}
-          complete={props.input.subagent_type ?? props.input.description}
-          part={props.part}
-        >
-          {Locale.titlecase(props.input.subagent_type ?? "unknown")} "{props.input.description}"
-        </InlineTool>
-      </Match>
-    </Switch>
+        </ToolContainer>
+      </Show>
+    </box>
   )
 }
 
@@ -1937,23 +1955,29 @@ function Patch(props: ToolProps<typeof PatchTool>) {
 }
 
 function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
+  const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
+  const count = createMemo(() => props.input.todos?.length ?? 0)
+
   return (
-    <Switch>
-      <Match when={props.metadata.todos?.length}>
-        <BlockTool title="# Todos" part={props.part}>
-          <box>
+    <box>
+      <InlineTool
+        icon="✅"
+        pending={count() > 0 ? `${count()} todos` : "Updating todos…"}
+        complete={complete()}
+        part={props.part}
+      >
+        {count()} todos
+      </InlineTool>
+      <Show when={complete() && props.input.todos?.length}>
+        <ToolContainer>
+          <box paddingTop={1} paddingBottom={1}>
             <For each={props.input.todos ?? []}>
               {(todo) => <TodoItem status={todo.status} content={todo.content} />}
             </For>
           </box>
-        </BlockTool>
-      </Match>
-      <Match when={true}>
-        <InlineTool icon="✅" pending="Updating todos…" complete={false} part={props.part}>
-          Updating todos…
-        </InlineTool>
-      </Match>
-    </Switch>
+        </ToolContainer>
+      </Show>
+    </box>
   )
 }
 
