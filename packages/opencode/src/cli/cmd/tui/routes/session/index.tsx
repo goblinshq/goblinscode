@@ -1400,15 +1400,12 @@ function OutputPreview(props: { output?: string; lines?: number }) {
     <Show when={preview()}>
       <box
         border={["left"]}
-        paddingTop={1}
-        paddingBottom={1}
         paddingLeft={2}
-        marginTop={1}
         backgroundColor={theme.backgroundPanel}
         customBorderChars={SplitBorder.customBorderChars}
         borderColor={theme.background}
       >
-        <text paddingLeft={3} fg={theme.textMuted}>
+        <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
           {preview()}
         </text>
       </box>
