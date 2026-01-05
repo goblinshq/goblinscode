@@ -926,8 +926,8 @@ export function Prompt(props: PromptProps) {
                         </text>
                       </Match>
                       <Match when={variantDisplay()?.type === "hint"}>
-                        <text fg={theme.textMuted}>
-                          {keybind.print("variant_cycle")} <span style={{ fg: theme.textMuted }}>thinking</span>
+                        <text fg={theme.text}>
+                          {keybind.print("variant_cycle")} <span style={{ fg: theme.textMuted }}>variant</span>
                         </text>
                       </Match>
                     </Switch>
