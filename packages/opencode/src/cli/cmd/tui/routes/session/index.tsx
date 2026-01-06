@@ -1826,13 +1826,16 @@ function Task(props: ToolProps<typeof TaskTool>) {
   const current = createMemo(() => props.metadata.summary?.findLast((x) => x.state.status !== "pending"))
 
   const count = createMemo(() => props.metadata.summary?.length ?? 0)
-  const preview = createMemo(() => {
+  const previewBadge = createMemo(() => {
+    if (!current()) return undefined
+    return TOOL_BADGE[current()!.tool] ?? current()!.tool
+  })
+  const previewText = createMemo(() => {
     if (!current()) {
       if (isRunning()) return "Starting…"
       return undefined
     }
-    const status = current()!.state.status === "completed" ? current()!.state.title : ""
-    return `${Locale.titlecase(current()!.tool)} ${status}`
+    return current()!.state.status === "completed" ? current()!.state.title : ""
   })
 
   const name = createMemo(() => Locale.titlecase(props.input.name ?? props.input.description ?? "…"))
@@ -1869,7 +1872,7 @@ function Task(props: ToolProps<typeof TaskTool>) {
           </Show>
         </text>
       </box>
-      <Show when={preview()}>
+      <Show when={previewText()}>
         <ToolContainer
           onClick={
             props.metadata.sessionId
@@ -1877,9 +1880,15 @@ function Task(props: ToolProps<typeof TaskTool>) {
               : undefined
           }
         >
-          <text paddingLeft={3} fg={theme.textMuted}>
-            {preview()}
-          </text>
+          <box flexDirection="row" paddingLeft={3}>
+            <Show when={previewBadge()}>
+              <text>
+                <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {previewBadge()} </span>
+              </text>
+              <box width={1} />
+            </Show>
+            <text fg={theme.textMuted}>{previewText()}</text>
+          </box>
         </ToolContainer>
       </Show>
     </box>
