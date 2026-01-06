@@ -1545,12 +1545,16 @@ function InlineToolContent(props: {
   const { theme } = useTheme()
   const badge = TOOL_BADGE[props.tool] ?? props.tool
   return (
-    <text fg={props.fg} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
-      <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {badge} </span>{" "}
-      <Show fallback={props.pending} when={props.complete}>
-        {props.children}
-      </Show>
-    </text>
+    <box flexDirection="row" alignItems="flex-start" gap={1}>
+      <text>
+        <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {badge} </span>
+      </text>
+      <text fg={props.fg} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
+        <Show fallback={props.pending} when={props.complete}>
+          {props.children}
+        </Show>
+      </text>
+    </box>
   )
 }
 
@@ -1652,10 +1656,11 @@ function BlockTool(props: { title: string; children: JSX.Element; onClick?: () =
 function Bash(props: ToolProps<typeof BashTool>) {
   const output = createMemo(() => renderTerminal(props.metadata.output ?? ""))
   const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
+  const hasCommand = createMemo(() => !!props.input.command)
 
   return (
     <box>
-      <InlineTool tool="bash" pending={props.input.command ?? "…"} complete={complete()} part={props.part}>
+      <InlineTool tool="bash" pending={props.input.command ?? "…"} complete={hasCommand()} part={props.part}>
         {props.input.command}
       </InlineTool>
       <Show when={complete()}>
