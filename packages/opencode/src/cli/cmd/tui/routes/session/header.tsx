@@ -1,5 +1,5 @@
-import { type Accessor, createMemo, Match, Show, Switch } from "solid-js"
-import { useRouteData } from "@tui/context/route"
+import { type Accessor, createMemo, For, Match, Show, Switch } from "solid-js"
+import { useRoute, useRouteData } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
 import { pipe, sumBy } from "remeda"
 import { useTheme } from "@tui/context/theme"
@@ -25,6 +25,55 @@ const ContextInfo = (props: { context: Accessor<string | undefined>; cost: Acces
         {props.context()} ({props.cost()})
       </text>
     </Show>
+  )
+}
+
+function SubagentBadges(props: { sessionID: string; parentID: string }) {
+  const sync = useSync()
+  const { theme } = useTheme()
+  const { navigate } = useRoute()
+
+  const siblings = createMemo(() => {
+    return sync.data.session
+      .filter((x) => x.parentID === props.parentID)
+      .toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  })
+
+  const getStatus = (sessionID: string) => {
+    const msgs = sync.data.message[sessionID] ?? []
+    const last = msgs.findLast((x) => x.role === "assistant")
+    if (!last) return "pending"
+    if (last.error) return "error"
+    if (!last.time.completed) return "running"
+    return "completed"
+  }
+
+  const getColor = (status: string, isCurrent: boolean) => {
+    if (isCurrent) return theme.accent
+    if (status === "error") return theme.error
+    if (status === "running") return theme.warning
+    if (status === "completed") return theme.textMuted
+    return theme.backgroundElement
+  }
+
+  return (
+    <box flexDirection="row" gap={1}>
+      <For each={siblings()}>
+        {(session, index) => {
+          const status = createMemo(() => getStatus(session.id))
+          const isCurrent = session.id === props.sessionID
+          const color = createMemo(() => getColor(status(), isCurrent))
+          return (
+            <box onMouseUp={() => navigate({ type: "session", sessionID: session.id })}>
+              <text bg={color()} fg={isCurrent ? theme.background : theme.text}>
+                {" "}
+                {index() + 1}{" "}
+              </text>
+            </box>
+          )
+        }}
+      </For>
+    </box>
   )
 }
 
@@ -73,19 +122,11 @@ export function Header() {
       >
         <Switch>
           <Match when={session()?.parentID}>
-            <box flexDirection="row" gap={2}>
-              <text fg={theme.text}>
-                <b>Subagent session</b>
-              </text>
-              <text fg={theme.text}>
-                Parent <span style={{ fg: theme.textMuted }}>{keybind.print("session_parent")}</span>
-              </text>
-              <text fg={theme.text}>
-                Prev <span style={{ fg: theme.textMuted }}>{keybind.print("session_child_cycle_reverse")}</span>
-              </text>
-              <text fg={theme.text}>
-                Next <span style={{ fg: theme.textMuted }}>{keybind.print("session_child_cycle")}</span>
-              </text>
+            <box flexDirection="row" gap={1} alignItems="center">
+              <text fg={theme.textMuted}>Subagents</text>
+              <SubagentBadges sessionID={route.sessionID} parentID={session()!.parentID!} />
+              <box width={1} />
+              <text fg={theme.textMuted}>{keybind.print("session_parent")} parent</text>
               <box flexGrow={1} flexShrink={1} />
               <ContextInfo context={context} cost={cost} />
             </box>

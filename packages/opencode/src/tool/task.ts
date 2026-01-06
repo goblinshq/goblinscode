@@ -78,6 +78,10 @@ export const TaskTool = Tool.define("task", async () => {
       const msg = await MessageV2.get({ sessionID: ctx.sessionID, messageID: ctx.messageID })
       if (msg.info.role !== "assistant") throw new Error("Not an assistant message")
 
+      // Get parent user message to inherit variant if using same model
+      const parentUserMsg = await MessageV2.get({ sessionID: ctx.sessionID, messageID: msg.info.parentID })
+      const parentVariant = parentUserMsg.info.role === "user" ? parentUserMsg.info.variant : undefined
+
       ctx.metadata({
         title: params.description,
         metadata: {
@@ -109,10 +113,15 @@ export const TaskTool = Tool.define("task", async () => {
         })
       })
 
+      // Use agent's model if configured, otherwise inherit from parent
+      const useParentModel = !agent.model
       const model = agent.model ?? {
         modelID: msg.info.modelID,
         providerID: msg.info.providerID,
       }
+
+      // Inherit variant if using same model as parent
+      const variant = useParentModel ? parentVariant : undefined
 
       function cancel() {
         SessionPrompt.cancel(session.id)
@@ -128,6 +137,7 @@ export const TaskTool = Tool.define("task", async () => {
           modelID: model.modelID,
           providerID: model.providerID,
         },
+        variant,
         agent: agent.name,
         tools: {
           todowrite: false,
