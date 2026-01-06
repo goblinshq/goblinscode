@@ -1069,6 +1069,24 @@ const MIME_BADGE: Record<string, string> = {
   "application/x-directory": "dir",
 }
 
+const TOOL_BADGE: Record<string, string> = {
+  bash: "bash",
+  glob: "glob",
+  read: "read",
+  grep: "grep",
+  list: "list",
+  write: "write",
+  edit: "edit",
+  patch: "patch",
+  webfetch: "fetch",
+  websearch: "search",
+  codesearch: "code",
+  deepwiki: "wiki",
+  task: "task",
+  todowrite: "todo",
+  skill: "skill",
+}
+
 function UserMessage(props: {
   message: UserMessage
   parts: Part[]
@@ -1430,7 +1448,7 @@ function GenericTool(props: ToolProps<any>) {
   const pending = params ? `${name} ${params}` : name
   return (
     <box>
-      <InlineTool icon="⚙️" pending={pending} complete={true} part={props.part}>
+      <InlineTool tool={props.tool} pending={pending} complete={true} part={props.part}>
         {name} {params}
       </InlineTool>
       <OutputPreview output={props.output} />
@@ -1481,12 +1499,12 @@ function createShimmer(baseColor: RGBA, highlightColor: RGBA, width: number = 3,
   }
 }
 
-function ShimmerText(props: { icon?: string; text: string }) {
+function ShimmerText(props: { badge?: string; text: string }) {
   const { theme } = useTheme()
   const shimmerPause = 8
 
   const shimmerText = createMemo(() => {
-    const text = props.icon ? `${props.icon} ${props.text}` : props.text
+    const text = props.badge ? `${props.badge}  ${props.text}` : props.text
     return text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥")
   })
 
@@ -1512,16 +1530,18 @@ function ShimmerText(props: { icon?: string; text: string }) {
 }
 
 function InlineToolContent(props: {
-  icon: string
+  tool: string
   complete: any
   pending: string
   children: JSX.Element
   fg: RGBA
   denied: boolean
 }) {
+  const { theme } = useTheme()
+  const badge = TOOL_BADGE[props.tool] ?? props.tool
   return (
     <text fg={props.fg} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
-      <span style={{ bold: true }}>{props.icon}</span>{" "}
+      <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {badge} </span>{" "}
       <Show fallback={props.pending} when={props.complete}>
         {props.children}
       </Show>
@@ -1529,7 +1549,7 @@ function InlineToolContent(props: {
   )
 }
 
-function InlineTool(props: { icon: string; complete: any; pending: string; children: JSX.Element; part: ToolPart }) {
+function InlineTool(props: { tool: string; complete: any; pending: string; children: JSX.Element; part: ToolPart }) {
   const { theme } = useTheme()
   const ctx = use()
   const sync = useSync()
@@ -1555,13 +1575,15 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
 
   const denied = createMemo(() => error()?.includes("rejected permission") || error()?.includes("specified a rule"))
 
+  const badge = TOOL_BADGE[props.tool] ?? props.tool
+
   return (
     <box marginTop={1} paddingLeft={3}>
       <Show
         when={isRunning() && animationsEnabled()}
         fallback={
           <InlineToolContent
-            icon={props.icon}
+            tool={props.tool}
             complete={props.complete}
             pending={props.pending}
             fg={fg()}
@@ -1571,7 +1593,7 @@ function InlineTool(props: { icon: string; complete: any; pending: string; child
           </InlineToolContent>
         }
       >
-        <ShimmerText icon={props.icon} text={props.pending} />
+        <ShimmerText badge={badge} text={props.pending} />
       </Show>
       <Show when={error() && !denied()}>
         <text fg={theme.error}>{error()}</text>
@@ -1628,7 +1650,7 @@ function Bash(props: ToolProps<typeof BashTool>) {
 
   return (
     <box>
-      <InlineTool icon="⚡" pending={props.input.command ?? "…"} complete={complete()} part={props.part}>
+      <InlineTool tool="bash" pending={props.input.command ?? "…"} complete={complete()} part={props.part}>
         {props.input.command}
       </InlineTool>
       <Show when={complete()}>
@@ -1660,7 +1682,7 @@ function Write(props: ToolProps<typeof WriteTool>) {
 
   return (
     <>
-      <InlineTool icon="📝" pending={pending()} complete={complete()} part={props.part}>
+      <InlineTool tool="write" pending={pending()} complete={complete()} part={props.part}>
         {normalizePath(props.input.filePath!)}
       </InlineTool>
       <Show when={complete()}>
@@ -1695,7 +1717,7 @@ function Glob(props: ToolProps<typeof GlobTool>) {
     return `${props.input.pattern ?? "…"}${p}`
   })
   return (
-    <InlineTool icon="📁" pending={pending()} complete={props.input.pattern} part={props.part}>
+    <InlineTool tool="glob" pending={pending()} complete={props.input.pattern} part={props.part}>
       {props.input.pattern} <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
       <Show when={props.metadata.count}>({props.metadata.count})</Show>
     </InlineTool>
@@ -1709,7 +1731,7 @@ function Read(props: ToolProps<typeof ReadTool>) {
     return extra ? `${file} ${extra}` : file
   })
   return (
-    <InlineTool icon="👀" pending={pending()} complete={props.input.filePath} part={props.part}>
+    <InlineTool tool="read" pending={pending()} complete={props.input.filePath} part={props.part}>
       {normalizePath(props.input.filePath!)} {input(props.input, ["filePath"])}
     </InlineTool>
   )
@@ -1721,7 +1743,7 @@ function Grep(props: ToolProps<typeof GrepTool>) {
     return `"${props.input.pattern ?? "…"}"${p}`
   })
   return (
-    <InlineTool icon="🔍" pending={pending()} complete={props.input.pattern} part={props.part}>
+    <InlineTool tool="grep" pending={pending()} complete={props.input.pattern} part={props.part}>
       "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
       <Show when={props.metadata.matches}>({props.metadata.matches})</Show>
     </InlineTool>
@@ -1736,7 +1758,12 @@ function List(props: ToolProps<typeof ListTool>) {
     return ""
   })
   return (
-    <InlineTool icon="📂" pending={`List ${dir() || "…"}`} complete={props.input.path !== undefined} part={props.part}>
+    <InlineTool
+      tool="list"
+      pending={`List ${dir() || "…"}`}
+      complete={props.input.path !== undefined}
+      part={props.part}
+    >
       List {dir()}
     </InlineTool>
   )
@@ -1746,7 +1773,7 @@ function WebFetch(props: ToolProps<typeof WebFetchTool>) {
   return (
     <box>
       <InlineTool
-        icon="🔎"
+        tool="webfetch"
         pending={`Fetch ${(props.input as any).url ?? "…"}`}
         complete={(props.input as any).url}
         part={props.part}
@@ -1762,7 +1789,12 @@ function CodeSearch(props: ToolProps<any>) {
   const input = props.input as any
   const metadata = props.metadata as any
   return (
-    <InlineTool icon="💻" pending={`Code Search "${input.query ?? "…"}"`} complete={input.query} part={props.part}>
+    <InlineTool
+      tool="codesearch"
+      pending={`Code Search "${input.query ?? "…"}"`}
+      complete={input.query}
+      part={props.part}
+    >
       Code Search "{input.query}" <Show when={metadata.results}>({metadata.results} results)</Show>
     </InlineTool>
   )
@@ -1773,7 +1805,7 @@ function WebSearch(props: ToolProps<any>) {
   const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
   return (
     <box>
-      <InlineTool icon="🔍" pending={input.query ?? "…"} complete={complete()} part={props.part}>
+      <InlineTool tool="websearch" pending={input.query ?? "…"} complete={complete()} part={props.part}>
         {input.query}
       </InlineTool>
       <OutputPreview output={props.output} filetype="json" />
@@ -1791,7 +1823,7 @@ function DeepWiki(props: ToolProps<any>) {
   })
   return (
     <box>
-      <InlineTool icon="📚" pending={pending()} complete={complete()} part={props.part}>
+      <InlineTool tool="deepwiki" pending={pending()} complete={complete()} part={props.part}>
         {input.repo} "{input.question}"
       </InlineTool>
       <OutputPreview output={props.output} filetype="markdown" />
@@ -1822,7 +1854,7 @@ function Task(props: ToolProps<typeof TaskTool>) {
 
   return (
     <box>
-      <InlineTool icon="🤖" pending={pending()} complete={complete()} part={props.part}>
+      <InlineTool tool="task" pending={pending()} complete={complete()} part={props.part}>
         {Locale.titlecase(props.input.subagent_type ?? "unknown")} "{props.input.description}"
       </InlineTool>
       <Show when={complete() && summary()}>
@@ -1874,7 +1906,7 @@ function Edit(props: ToolProps<typeof EditTool>) {
   return (
     <>
       <InlineTool
-        icon="✏️"
+        tool="edit"
         pending={props.input.filePath ? normalizePath(props.input.filePath) : "…"}
         complete={complete()}
         part={props.part}
@@ -1931,7 +1963,7 @@ function Patch(props: ToolProps<typeof PatchTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="🩹" pending="Patch…" complete={false} part={props.part}>
+        <InlineTool tool="patch" pending="Patch…" complete={false} part={props.part}>
           Patch
         </InlineTool>
       </Match>
@@ -1946,7 +1978,7 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
   return (
     <box>
       <InlineTool
-        icon="✅"
+        tool="todowrite"
         pending={count() > 0 ? `${count()} todos` : "Updating todos…"}
         complete={complete()}
         part={props.part}
@@ -1969,7 +2001,7 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
 function Skill(props: ToolProps<any>) {
   const name = createMemo(() => (props.input as any)?.name || (props.metadata as any)?.name || "skill")
   return (
-    <InlineTool icon="🧠" pending={name()} complete={name()} part={props.part}>
+    <InlineTool tool="skill" pending={name()} complete={name()} part={props.part}>
       {name()}
     </InlineTool>
   )
