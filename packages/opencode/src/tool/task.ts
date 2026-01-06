@@ -24,7 +24,12 @@ export const TaskTool = Tool.define("task", async () => {
     parameters: z.object({
       subagent_type: z.string().describe("The type of specialized agent to use for this task"),
       description: z.string().describe("A short (3-5 words) description of the task"),
-      session_id: z.string().describe("Existing Task session to continue").optional(),
+      name: z
+        .string()
+        .describe(
+          "A unique, playful name for this subagent that describes its task (e.g. 'auth flowz inspector', 'navbar fixer upper', 'database schema scout'). Reuse the same name to continue a previous subagent's work.",
+        )
+        .optional(),
       command: z.string().describe("The command that triggered this task").optional(),
       prompt: z.string().describe("The task for the agent to perform"),
     }),
@@ -43,13 +48,14 @@ export const TaskTool = Tool.define("task", async () => {
       const agent = await Agent.get(params.subagent_type)
       if (!agent) throw new Error(`Unknown agent type: ${params.subagent_type} is not a valid agent type`)
       const session = await iife(async () => {
-        if (params.session_id) {
-          const found = await Session.get(params.session_id).catch(() => {})
+        if (params.name) {
+          const found = await Session.findByName({ parentID: ctx.sessionID, name: params.name })
           if (found) return found
         }
 
         return await Session.create({
           parentID: ctx.sessionID,
+          name: params.name,
           title: params.description + ` (@${agent.name} subagent)`,
           permission: [
             {
@@ -162,12 +168,14 @@ export const TaskTool = Tool.define("task", async () => {
         }))
       const text = result.parts.findLast((x) => x.type === "text")?.text ?? ""
 
-      const output = text + "\n\n" + ["<task_metadata>", `session_id: ${session.id}`, "</task_metadata>"].join("\n")
+      const metadata = params.name ? `name: ${params.name}` : `session_id: ${session.id}`
+      const output = text + "\n\n" + ["<task_metadata>", metadata, "</task_metadata>"].join("\n")
 
       return {
         title: params.description,
         metadata: {
           summary,
+          name: params.name,
           sessionId: session.id,
         },
         output,

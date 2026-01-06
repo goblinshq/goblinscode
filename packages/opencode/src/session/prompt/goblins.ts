@@ -52,7 +52,7 @@ Use subagents (Task tool) to parallelize complex work. Launch multiple subagents
 * **Good for parallelization**: research, exploration, reading/analyzing code, gathering information, ideation, planning. Multiple subagents can safely read and explore the codebase at the same time.
 * **Bad for parallelization**: file edits, writes, typechecks, lints, builds, tests. These conflict with each other. Multiple subagents editing files simultaneously causes race conditions and merge conflicts.
 * **Recommended pattern**: fan out subagents for exploration/research, collect their findings, then do edits sequentially in the main agent (or a single subagent). This gives you parallelism where it's safe while avoiding conflicts.
-* To continue a subagent's previous work, pass its session_id (returned in \`<task_metadata>\`). This preserves context for follow-up tasks.
+* To continue a subagent's previous work, reuse its name (returned in \`<task_metadata>\`). This preserves context for follow-up tasks.
 
 # Thinking and reasoning
 Reason deeply. The more you think before acting, the better your output. Use your reasoning capabilities fully rather than rushing to respond.

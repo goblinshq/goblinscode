@@ -42,6 +42,7 @@ export namespace Session {
       projectID: z.string(),
       directory: z.string(),
       parentID: Identifier.schema("session").optional(),
+      name: z.string().optional(),
       summary: z
         .object({
           additions: z.number(),
@@ -127,6 +128,7 @@ export namespace Session {
     z
       .object({
         parentID: Identifier.schema("session").optional(),
+        name: z.string().optional(),
         title: z.string().optional(),
         permission: Info.shape.permission,
       })
@@ -134,6 +136,7 @@ export namespace Session {
     async (input) => {
       return createNext({
         parentID: input?.parentID,
+        name: input?.name,
         directory: Instance.directory,
         title: input?.title,
         permission: input?.permission,
@@ -181,6 +184,7 @@ export namespace Session {
   export async function createNext(input: {
     id?: string
     title?: string
+    name?: string
     parentID?: string
     directory: string
     permission?: PermissionNext.Ruleset
@@ -191,6 +195,7 @@ export namespace Session {
       projectID: Instance.project.id,
       directory: input.directory,
       parentID: input.parentID,
+      name: input.name,
       title: input.title ?? createDefaultTitle(!!input.parentID),
       permission: input.permission,
       time: {
@@ -303,6 +308,17 @@ export namespace Session {
     }
     return result
   })
+
+  export const findByName = fn(
+    z.object({
+      parentID: Identifier.schema("session"),
+      name: z.string(),
+    }),
+    async (input) => {
+      const kids = await children(input.parentID)
+      return kids.find((x) => x.name === input.name)
+    },
+  )
 
   export const remove = fn(Identifier.schema("session"), async (sessionID) => {
     const project = Instance.project
