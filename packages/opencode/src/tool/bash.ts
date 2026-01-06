@@ -187,6 +187,7 @@ export const BashTool = Tool.define("bash", async () => {
           CI: "true",
           DEBIAN_FRONTEND: "noninteractive",
           GIT_TERMINAL_PROMPT: "0",
+          GH_PROMPT_DISABLED: "1",
           npm_config_yes: "true",
           PAGER: "cat",
           GIT_PAGER: "cat",
