@@ -1499,26 +1499,24 @@ function createShimmer(baseColor: RGBA, highlightColor: RGBA, width: number = 3,
   }
 }
 
-function ShimmerText(props: { badge?: string; text: string }) {
+function ShimmerText(props: { badge: string; text: string }) {
   const { theme } = useTheme()
   const shimmerPause = 8
 
-  const shimmerText = createMemo(() => {
-    const text = props.badge ? `${props.badge}  ${props.text}` : props.text
-    return text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥")
-  })
+  const badgeText = createMemo(() => ` ${props.badge} `)
+  const contentText = createMemo(() => props.text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥"))
 
-  const shimmerWidth = createMemo(() => Math.max(2, Math.floor(shimmerText().length / 4)))
+  const shimmerWidth = createMemo(() => Math.max(2, Math.floor(badgeText().length / 2)))
 
   const shimmerFrames = createMemo(() => {
-    const text = shimmerText()
+    const text = badgeText()
     const width = shimmerWidth()
     const cycleLength = text.length + width * 2 + shimmerPause
     return Array.from({ length: cycleLength }, () => text)
   })
 
   const shimmerInterval = createMemo(() => {
-    const text = shimmerText()
+    const text = badgeText()
     const width = shimmerWidth()
     const traversalFrames = text.length + width * 2
     return Math.max(10, Math.floor(500 / traversalFrames))
@@ -1526,7 +1524,14 @@ function ShimmerText(props: { badge?: string; text: string }) {
 
   const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth(), shimmerPause))
 
-  return <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
+  return (
+    <text>
+      <span style={{ bg: theme.backgroundElement }}>
+        <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
+      </span>
+      <span style={{ fg: theme.textMuted }}> {contentText()}</span>
+    </text>
+  )
 }
 
 function InlineToolContent(props: {
