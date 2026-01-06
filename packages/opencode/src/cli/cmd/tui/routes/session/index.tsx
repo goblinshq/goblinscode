@@ -1499,63 +1499,19 @@ function createShimmer(baseColor: RGBA, highlightColor: RGBA, width: number = 3,
   }
 }
 
-function ShimmerText(props: { badge: string; text: string }) {
+function ShimmerBadge(props: { badge: string }) {
   const { theme } = useTheme()
   const shimmerPause = 8
-
-  const badgeText = createMemo(() => ` ${props.badge} `)
-  const contentText = createMemo(() => props.text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥"))
-
-  const shimmerWidth = createMemo(() => Math.max(2, Math.floor(badgeText().length / 2)))
-
-  const shimmerFrames = createMemo(() => {
-    const text = badgeText()
-    const width = shimmerWidth()
-    const cycleLength = text.length + width * 2 + shimmerPause
-    return Array.from({ length: cycleLength }, () => text)
-  })
-
-  const shimmerInterval = createMemo(() => {
-    const text = badgeText()
-    const width = shimmerWidth()
-    const traversalFrames = text.length + width * 2
-    return Math.max(10, Math.floor(500 / traversalFrames))
-  })
-
-  const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth(), shimmerPause))
+  const badgeText = ` ${props.badge} `
+  const shimmerWidth = Math.max(2, Math.floor(badgeText.length / 2))
+  const cycleLength = badgeText.length + shimmerWidth * 2 + shimmerPause
+  const frames = Array.from({ length: cycleLength }, () => badgeText)
+  const interval = Math.max(10, Math.floor(500 / (badgeText.length + shimmerWidth * 2)))
+  const color = createShimmer(theme.textMuted, theme.text, shimmerWidth, shimmerPause)
 
   return (
-    <box flexDirection="row" alignItems="flex-start">
-      <box backgroundColor={theme.backgroundElement} height={1}>
-        <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
-      </box>
-      <box width={1} />
-      <text fg={theme.textMuted}>{contentText()}</text>
-    </box>
-  )
-}
-
-function InlineToolContent(props: {
-  tool: string
-  complete: any
-  pending: string
-  children: JSX.Element
-  fg: RGBA
-  denied: boolean
-}) {
-  const { theme } = useTheme()
-  const badge = TOOL_BADGE[props.tool] ?? props.tool
-  return (
-    <box flexDirection="row" alignItems="flex-start">
-      <text height={1}>
-        <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {badge} </span>
-      </text>
-      <box width={1} />
-      <text fg={props.fg} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
-        <Show fallback={props.pending} when={props.complete}>
-          {props.children}
-        </Show>
-      </text>
+    <box backgroundColor={theme.backgroundElement} height={1}>
+      <spinner frames={frames} interval={interval} color={color} />
     </box>
   )
 }
@@ -1567,6 +1523,7 @@ function InlineTool(props: { tool: string; complete: any; pending: string; child
   const kv = useKV()
 
   const animationsEnabled = createMemo(() => kv.get("animations_enabled", true))
+  const badge = TOOL_BADGE[props.tool] ?? props.tool
 
   const permission = createMemo(() => {
     const callID = sync.data.permission[ctx.sessionID]?.at(0)?.tool?.callID
@@ -1575,6 +1532,7 @@ function InlineTool(props: { tool: string; complete: any; pending: string; child
   })
 
   const isRunning = createMemo(() => props.part.state.status === "running" || props.part.state.status === "pending")
+  const showShimmer = createMemo(() => isRunning() && animationsEnabled())
 
   const fg = createMemo(() => {
     if (permission()) return theme.warning
@@ -1583,29 +1541,31 @@ function InlineTool(props: { tool: string; complete: any; pending: string; child
   })
 
   const error = createMemo(() => (props.part.state.status === "error" ? props.part.state.error : undefined))
-
   const denied = createMemo(() => error()?.includes("rejected permission") || error()?.includes("specified a rule"))
 
-  const badge = TOOL_BADGE[props.tool] ?? props.tool
+  const content = createMemo(() => {
+    const text = props.complete ? props.children : props.pending
+    return typeof text === "string" ? text.replace(/\.{3}/g, "…").replace(/\.{2}/g, "‥") : text
+  })
 
   return (
     <box marginTop={1} paddingLeft={3}>
-      <Show
-        when={isRunning() && animationsEnabled()}
-        fallback={
-          <InlineToolContent
-            tool={props.tool}
-            complete={props.complete}
-            pending={props.pending}
-            fg={fg()}
-            denied={denied() ?? false}
-          >
-            {props.children}
-          </InlineToolContent>
-        }
-      >
-        <ShimmerText badge={badge} text={props.pending} />
-      </Show>
+      <box flexDirection="row" alignItems="flex-start">
+        <Show
+          when={showShimmer()}
+          fallback={
+            <text height={1}>
+              <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {badge} </span>
+            </text>
+          }
+        >
+          <ShimmerBadge badge={badge} />
+        </Show>
+        <box width={1} />
+        <text fg={fg()} attributes={denied() ? TextAttributes.STRIKETHROUGH : undefined}>
+          {content()}
+        </text>
+      </box>
       <Show when={error() && !denied()}>
         <text fg={theme.error}>{error()}</text>
       </Show>
