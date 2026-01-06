@@ -1499,7 +1499,7 @@ function createShimmer(baseColor: RGBA, highlightColor: RGBA, width: number = 3,
   }
 }
 
-function ShimmerBadge(props: { badge: string }) {
+function ShimmerBadge(props: { badge: string; color?: RGBA }) {
   const { theme } = useTheme()
   const shimmerPause = 8
   const badgeText = ` ${props.badge} `
@@ -1507,7 +1507,8 @@ function ShimmerBadge(props: { badge: string }) {
   const cycleLength = badgeText.length + shimmerWidth * 2 + shimmerPause
   const frames = Array.from({ length: cycleLength }, () => badgeText)
   const interval = Math.max(10, Math.floor(500 / (badgeText.length + shimmerWidth * 2)))
-  const color = createShimmer(theme.textMuted, theme.text, shimmerWidth, shimmerPause)
+  const active = props.color ?? theme.text
+  const color = createShimmer(theme.textMuted, active, shimmerWidth, shimmerPause)
 
   return (
     <box backgroundColor={theme.backgroundElement} height={1}>
@@ -1835,6 +1836,8 @@ function Task(props: ToolProps<typeof TaskTool>) {
     return colors[props.input.subagent_type ?? ""] ?? theme.secondary
   })
 
+  const badgeText = createMemo(() => Locale.titlecase(type() ?? "Task"))
+
   return (
     <box marginTop={1} paddingLeft={3}>
       <box flexDirection="row" alignItems="flex-start">
@@ -1842,17 +1845,11 @@ function Task(props: ToolProps<typeof TaskTool>) {
           when={isRunning() && animationsEnabled()}
           fallback={
             <text height={1}>
-              <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> Task </span>
+              <span style={{ bg: theme.backgroundElement, fg: typeColor() }}> {badgeText()} </span>
             </text>
           }
         >
-          <ShimmerBadge badge="Task" />
-        </Show>
-        <Show when={type()}>
-          <box width={1} />
-          <text height={1}>
-            <span style={{ bg: typeColor(), fg: theme.background }}> {Locale.titlecase(type()!)} </span>
-          </text>
+          <ShimmerBadge badge={badgeText()} color={typeColor()} />
         </Show>
         <box width={1} />
         <text fg={complete() ? theme.textMuted : theme.text}>
