@@ -14,6 +14,7 @@ import { LLM } from "./llm"
 import { Config } from "@/config/config"
 import { SessionCompaction } from "./compaction"
 import { PermissionNext } from "@/permission/next"
+import { parse as parsePartialJson } from "partial-json"
 
 export namespace SessionProcessor {
   const DOOM_LOOP_THRESHOLD = 3
@@ -29,6 +30,7 @@ export namespace SessionProcessor {
     abort: AbortSignal
   }) {
     const toolcalls: Record<string, MessageV2.ToolPart> = {}
+    const toolInputBuffers: Record<string, string> = {}
     let snapshot: string | undefined
     let blocked = false
     let attempt = 0
@@ -102,6 +104,7 @@ export namespace SessionProcessor {
                   break
 
                 case "tool-input-start":
+                  toolInputBuffers[value.id] = ""
                   const part = await Session.updatePart({
                     id: toolcalls[value.id]?.id ?? Identifier.ascending("part"),
                     messageID: input.assistantMessage.id,
@@ -118,10 +121,26 @@ export namespace SessionProcessor {
                   toolcalls[value.id] = part as MessageV2.ToolPart
                   break
 
-                case "tool-input-delta":
+                case "tool-input-delta": {
+                  const match = toolcalls[value.id]
+                  if (match && value.delta) {
+                    toolInputBuffers[value.id] = (toolInputBuffers[value.id] ?? "") + value.delta
+                    const parsed = parsePartialJson(toolInputBuffers[value.id])
+                    if (parsed && typeof parsed === "object") {
+                      await Session.updatePart({
+                        ...match,
+                        state: {
+                          ...match.state,
+                          input: parsed,
+                        },
+                      })
+                    }
+                  }
                   break
+                }
 
                 case "tool-input-end":
+                  delete toolInputBuffers[value.id]
                   break
 
                 case "tool-call": {
