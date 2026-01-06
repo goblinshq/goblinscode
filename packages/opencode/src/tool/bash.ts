@@ -16,10 +16,12 @@ import { Shell } from "@/shell/shell"
 
 import { BashArity } from "@/permission/arity"
 
-const pty = lazy(async () => {
+const getPty = async () => {
   const { spawn } = await import("bun-pty")
   return spawn
-})
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const MAX_OUTPUT_LENGTH = Flag.OPENCODE_EXPERIMENTAL_BASH_MAX_OUTPUT_LENGTH || 30_000
 const DEFAULT_TIMEOUT = Flag.OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 2 * 60 * 1000
@@ -161,9 +163,9 @@ export const BashTool = Tool.define("bash", async () => {
         },
       })
 
-      const append = (chunk: string) => {
+      const append = (chunk: string | Buffer) => {
         if (output.length <= MAX_OUTPUT_LENGTH) {
-          output += chunk
+          output += chunk.toString()
           ctx.metadata({
             metadata: {
               output,
@@ -175,62 +177,135 @@ export const BashTool = Tool.define("bash", async () => {
       let timedOut = false
       let aborted = false
 
-      // Use PTY for better compatibility with interactive commands
-      const ptySpawn = await pty()
-      const proc = ptySpawn(shell, ["-c", params.command], {
-        name: "xterm-256color",
-        cwd,
-        env: {
-          ...process.env,
-          TERM: "xterm-256color",
-          // Discourage interactive prompts while keeping TTY output
-          CI: "true",
-          DEBIAN_FRONTEND: "noninteractive",
-          GIT_TERMINAL_PROMPT: "0",
-          GH_PROMPT_DISABLED: "1",
-          npm_config_yes: "true",
-          PAGER: "cat",
-          GIT_PAGER: "cat",
-        },
-      })
+      // Try PTY with retries, fall back to regular spawn if all attempts fail
+      let usedPty = false
+      const PTY_RETRIES = 3
+      let proc: any
+      let ptyError: unknown
 
-      proc.onData(append)
-
-      const kill = () => {
+      for (let attempt = 0; attempt < PTY_RETRIES; attempt++) {
         try {
-          proc.kill()
-        } catch {}
+          const ptySpawn = await getPty()
+          proc = ptySpawn(shell, ["-c", params.command], {
+            name: "xterm-256color",
+            cwd,
+            env: {
+              ...process.env,
+              TERM: "xterm-256color",
+              CI: "true",
+              DEBIAN_FRONTEND: "noninteractive",
+              GIT_TERMINAL_PROMPT: "0",
+              GH_PROMPT_DISABLED: "1",
+              npm_config_yes: "true",
+              PAGER: "cat",
+              GIT_PAGER: "cat",
+            },
+          })
+          usedPty = true
+          break
+        } catch (e) {
+          ptyError = e
+          if (attempt < PTY_RETRIES - 1) {
+            log.warn("PTY spawn failed, retrying", { attempt: attempt + 1, error: e })
+            await sleep(50 * (attempt + 1))
+          }
+        }
       }
 
-      if (ctx.abort.aborted) {
-        aborted = true
-        kill()
-      }
+      if (usedPty && proc) {
+        // PTY path
+        proc.onData(append)
 
-      const abortHandler = () => {
-        aborted = true
-        kill()
-      }
-
-      ctx.abort.addEventListener("abort", abortHandler, { once: true })
-
-      const timeoutTimer = setTimeout(() => {
-        timedOut = true
-        kill()
-      }, timeout + 100)
-
-      await new Promise<void>((resolve) => {
-        const cleanup = () => {
-          clearTimeout(timeoutTimer)
-          ctx.abort.removeEventListener("abort", abortHandler)
+        const kill = () => {
+          try {
+            proc.kill()
+          } catch {}
         }
 
-        proc.onExit(({ exitCode: code }) => {
-          exitCode = code
-          cleanup()
-          resolve()
+        if (ctx.abort.aborted) {
+          aborted = true
+          kill()
+        }
+
+        const abortHandler = () => {
+          aborted = true
+          kill()
+        }
+
+        ctx.abort.addEventListener("abort", abortHandler, { once: true })
+
+        const timeoutTimer = setTimeout(() => {
+          timedOut = true
+          kill()
+        }, timeout + 100)
+
+        await new Promise<void>((resolve) => {
+          const cleanup = () => {
+            clearTimeout(timeoutTimer)
+            ctx.abort.removeEventListener("abort", abortHandler)
+          }
+
+          proc.onExit(({ exitCode: code }: { exitCode: number }) => {
+            exitCode = code
+            cleanup()
+            resolve()
+          })
         })
-      })
+      } else {
+        // Fallback to regular spawn
+        log.warn("PTY spawn failed after retries, falling back to regular spawn", { error: ptyError })
+
+        const fallbackProc = spawn(params.command, {
+          shell,
+          cwd,
+          env: process.env,
+          stdio: ["ignore", "pipe", "pipe"],
+          detached: process.platform !== "win32",
+        })
+
+        fallbackProc.stdout?.on("data", append)
+        fallbackProc.stderr?.on("data", append)
+
+        let exited = false
+        const kill = () => Shell.killTree(fallbackProc, { exited: () => exited })
+
+        if (ctx.abort.aborted) {
+          aborted = true
+          await kill()
+        }
+
+        const abortHandler = () => {
+          aborted = true
+          void kill()
+        }
+
+        ctx.abort.addEventListener("abort", abortHandler, { once: true })
+
+        const timeoutTimer = setTimeout(() => {
+          timedOut = true
+          void kill()
+        }, timeout + 100)
+
+        await new Promise<void>((resolve, reject) => {
+          const cleanup = () => {
+            clearTimeout(timeoutTimer)
+            ctx.abort.removeEventListener("abort", abortHandler)
+          }
+
+          fallbackProc.once("exit", (code) => {
+            exited = true
+            exitCode = code ?? 0
+            cleanup()
+            resolve()
+          })
+
+          fallbackProc.once("error", (error) => {
+            exited = true
+            cleanup()
+            reject(error)
+          })
+        })
+      }
 
       let resultMetadata: String[] = ["<bash_metadata>"]
 
