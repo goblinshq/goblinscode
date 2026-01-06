@@ -1806,31 +1806,49 @@ function DeepWiki(props: ToolProps<any>) {
 
 function Task(props: ToolProps<typeof TaskTool>) {
   const { theme } = useTheme()
-  const keybind = useKeybind()
   const { navigate } = useRoute()
+  const kv = useKV()
 
+  const animationsEnabled = createMemo(() => kv.get("animations_enabled", true))
+  const isRunning = createMemo(() => props.part.state.status === "running" || props.part.state.status === "pending")
   const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
   const current = createMemo(() => props.metadata.summary?.findLast((x) => x.state.status !== "pending"))
-  const pending = createMemo(
-    () => `${Locale.titlecase(props.input.subagent_type ?? "Task")} "${props.input.description ?? "…"}"`,
-  )
 
-  const summary = createMemo(() => {
-    if (!props.metadata.summary?.length) return undefined
-    const lines = [`${props.input.description} (${props.metadata.summary.length} toolcalls)`]
-    if (current()) {
-      const status = current()!.state.status === "completed" ? current()!.state.title : ""
-      lines.push(`└ ${Locale.titlecase(current()!.tool)} ${status}`)
+  const preview = createMemo(() => {
+    if (!props.metadata.summary?.length) {
+      if (isRunning()) return "Starting…"
+      return undefined
     }
-    return lines.join("\n")
+    const count = `${props.metadata.summary.length} tool calls`
+    if (!current()) return count
+    const status = current()!.state.status === "completed" ? current()!.state.title : ""
+    return `${count} · ${Locale.titlecase(current()!.tool)} ${status}`
   })
 
+  const name = createMemo(() => props.input.name ?? props.input.description ?? "…")
+  const type = createMemo(() => Locale.titlecase(props.input.subagent_type ?? "task"))
+
   return (
-    <box>
-      <InlineTool tool="task" pending={pending()} complete={complete()} part={props.part}>
-        {Locale.titlecase(props.input.subagent_type ?? "unknown")} "{props.input.description}"
-      </InlineTool>
-      <Show when={summary()}>
+    <box marginTop={1} paddingLeft={3}>
+      <box flexDirection="row" alignItems="flex-start">
+        <Show
+          when={isRunning() && animationsEnabled()}
+          fallback={
+            <text height={1}>
+              <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> Task </span>
+            </text>
+          }
+        >
+          <ShimmerBadge badge="Task" />
+        </Show>
+        <box width={1} />
+        <text height={1}>
+          <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {type()} </span>
+        </text>
+        <box width={1} />
+        <text fg={complete() ? theme.textMuted : theme.text}>{name()}</text>
+      </box>
+      <Show when={preview()}>
         <ToolContainer
           onClick={
             props.metadata.sessionId
@@ -1838,17 +1856,9 @@ function Task(props: ToolProps<typeof TaskTool>) {
               : undefined
           }
         >
-          <box paddingTop={1} paddingBottom={1}>
-            <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
-              {summary()}
-            </text>
-            <Show when={complete()}>
-              <text paddingLeft={3} fg={theme.text}>
-                {keybind.print("session_child_cycle")}
-                <span style={{ fg: theme.textMuted }}> view subagents</span>
-              </text>
-            </Show>
-          </box>
+          <text paddingLeft={3} fg={theme.textMuted}>
+            {preview()}
+          </text>
         </ToolContainer>
       </Show>
     </box>
