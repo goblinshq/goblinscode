@@ -1872,13 +1872,19 @@ function Task(props: ToolProps<typeof TaskTool>) {
           </Show>
         </text>
       </box>
-      <Show when={previewText()}>
-        <ToolContainer
-          onClick={
-            props.metadata.sessionId
-              ? () => navigate({ type: "session", sessionID: props.metadata.sessionId! })
-              : undefined
-          }
+      <Show when={isRunning() || previewText()}>
+        <box
+          border={["left"]}
+          paddingTop={1}
+          paddingBottom={1}
+          marginTop={1}
+          height={3}
+          backgroundColor={theme.backgroundPanel}
+          customBorderChars={SplitBorder.customBorderChars}
+          borderColor={theme.background}
+          onMouseUp={() => {
+            if (props.metadata.sessionId) navigate({ type: "session", sessionID: props.metadata.sessionId! })
+          }}
         >
           <box flexDirection="row" paddingLeft={3}>
             <Show when={previewBadge()}>
@@ -1887,9 +1893,9 @@ function Task(props: ToolProps<typeof TaskTool>) {
               </text>
               <box width={1} />
             </Show>
-            <text fg={theme.textMuted}>{previewText()}</text>
+            <text fg={theme.textMuted}>{previewText() || "Starting…"}</text>
           </box>
-        </ToolContainer>
+        </box>
       </Show>
     </box>
   )
