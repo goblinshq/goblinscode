@@ -44,6 +44,24 @@ export function renderTerminal(input: string): string {
   while (i < input.length) {
     const char = input[i]
 
+    // Handle OSC sequences (Operating System Command) - \x1b] ... \x07 or \x1b]...\x1b\\
+    if (char === "\x1b" && input[i + 1] === "]") {
+      i += 2
+      // Skip until we find BEL (\x07) or ST (\x1b\\)
+      while (i < input.length) {
+        if (input[i] === "\x07") {
+          i++
+          break
+        }
+        if (input[i] === "\x1b" && input[i + 1] === "\\") {
+          i += 2
+          break
+        }
+        i++
+      }
+      continue
+    }
+
     // Handle escape sequences
     if (char === "\x1b" && input[i + 1] === "[") {
       const escStart = i
@@ -119,6 +137,14 @@ export function renderTerminal(input: string): string {
           // Unknown escape sequence, skip
           break
       }
+      continue
+    }
+
+    // Skip any other escape sequences we don't recognize
+    if (char === "\x1b") {
+      i++
+      // Skip the next character (single-char escape)
+      if (i < input.length) i++
       continue
     }
 
