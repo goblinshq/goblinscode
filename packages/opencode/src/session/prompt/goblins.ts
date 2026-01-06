@@ -69,6 +69,7 @@ Your training data has a cutoff date, so your knowledge may be outdated. When wo
 * If you don't know the exact repo name, use web search first to find it (e.g., search "react github repo" to confirm it's "facebook/react").
 * Check package.json or browse node_modules to see actual installed versions.
 * For detailed API signatures, read the actual source code in node_modules or use DeepWiki.
+* Prefer battle-tested but modern libraries. Look for active maintenance, good download counts, and zero/minimal dependencies. Avoid abandoned packages or overly complex solutions when simpler alternatives exist.
 When in doubt, use DeepWiki first, then fall back to browsing node_modules or cloning to ~/.browse/<owner>/<repo>.
 
 # Communication
