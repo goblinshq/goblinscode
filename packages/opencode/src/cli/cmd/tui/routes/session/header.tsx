@@ -50,7 +50,7 @@ function SubagentBadges(props: { sessionID: string; parentID: string }) {
     <box flexDirection="row" gap={1}>
       <For each={siblings()}>
         {(session, index) => {
-          const active = session.id === props.sessionID
+          const active = createMemo(() => session.id === props.sessionID)
           const working = createMemo(() => isWorking(session.id))
           return (
             <box
@@ -58,7 +58,10 @@ function SubagentBadges(props: { sessionID: string; parentID: string }) {
               border={["bottom"]}
               borderColor={working() ? theme.warning : theme.textMuted}
             >
-              <text bg={active ? theme.accent : theme.backgroundElement} fg={active ? theme.background : theme.text}>
+              <text
+                bg={active() ? theme.accent : theme.backgroundElement}
+                fg={active() ? theme.background : theme.text}
+              >
                 {" "}
                 {index() + 1}{" "}
               </text>
