@@ -543,6 +543,13 @@ export namespace MessageV2 {
           }
         }
         if (assistantMessage.parts.length > 0) {
+          // Sort parts so reasoning/step-start come before text/tool (required by Anthropic thinking mode)
+          assistantMessage.parts.sort((a, b) => {
+            const order = { "step-start": 0, reasoning: 1, text: 2 }
+            const aOrder = order[a.type as keyof typeof order] ?? 3
+            const bOrder = order[b.type as keyof typeof order] ?? 3
+            return aOrder - bOrder
+          })
           result.push(assistantMessage)
         }
       }
