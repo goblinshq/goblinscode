@@ -279,10 +279,6 @@ export namespace LSP {
     const clients = await getClients(input)
     await Promise.all(
       clients.map(async (client) => {
-        // Mark file as pending before opening so TypeScript diagnostics are published
-        if (waitForDiagnostics) {
-          client.markPendingDiagnostics(input)
-        }
         const wait = waitForDiagnostics ? client.waitForDiagnostics({ path: input }) : Promise.resolve()
         await client.notify.open({ path: input })
         return wait
