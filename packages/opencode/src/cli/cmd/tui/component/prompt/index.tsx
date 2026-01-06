@@ -564,6 +564,12 @@ export function Prompt(props: PromptProps) {
         model: `${selectedModel.providerID}/${selectedModel.modelID}`,
         messageID,
         variant,
+        parts: nonTextParts
+          .filter((x) => x.type === "file")
+          .map((x) => ({
+            id: Identifier.ascending("part"),
+            ...x,
+          })),
       })
     } else {
       sdk.client.session.prompt({
@@ -756,7 +762,7 @@ export function Prompt(props: PromptProps) {
         >
           <box
             paddingLeft={2}
-            paddingRight={1}
+            paddingRight={2}
             paddingTop={1}
             flexShrink={0}
             backgroundColor={theme.backgroundElement}

@@ -67,6 +67,7 @@ import { Editor } from "../../util/editor"
 import { renderTerminal } from "@/util/terminal"
 import { Footer } from "./footer.tsx"
 import { usePromptRef } from "../../context/prompt"
+import { useExit } from "../../context/exit"
 import { Filesystem } from "@/util/filesystem"
 import { PermissionPrompt } from "./permission"
 import { DialogExportOptions } from "../../ui/dialog-export-options"
@@ -195,6 +196,15 @@ export function Session() {
   let scroll: ScrollBoxRenderable
   let prompt: PromptRef
   const keybind = useKeybind()
+
+  // Allow exit when in child session (prompt is hidden)
+  const exit = useExit()
+  useKeyboard((evt) => {
+    if (!session()?.parentID) return
+    if (keybind.match("app_exit", evt)) {
+      exit()
+    }
+  })
 
   // Helper: Find next visible message boundary in direction
   const findNextVisibleMessage = (direction: "next" | "prev"): string | null => {
@@ -1211,7 +1221,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
           )
         }}
       </For>
-      <Show when={props.message.error}>
+      <Show when={props.message.error && props.message.error.name !== "MessageAbortedError"}>
         <box
           border={["left"]}
           paddingTop={1}
@@ -1227,10 +1237,19 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
       </Show>
 
       <Switch>
-        <Match when={props.last || final()}>
+        <Match when={props.last || final() || props.message.error?.name === "MessageAbortedError"}>
           <box paddingLeft={3} marginTop={1} flexDirection="row">
             <text>
-              <span style={{ fg: local.agent.color(props.message.agent) }}>{Locale.titlecase(props.message.mode)}</span>
+              <span
+                style={{
+                  fg:
+                    props.message.error?.name === "MessageAbortedError"
+                      ? theme.textMuted
+                      : local.agent.color(props.message.agent),
+                }}
+              >
+                {Locale.titlecase(props.message.mode)}
+              </span>
               <span style={{ fg: theme.textMuted }}> · </span>
             </text>
             <Show when={final()} fallback={<text fg={theme.textMuted}>{props.message.modelID}</text>}>
@@ -1238,6 +1257,9 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
                 <span style={{ fg: theme.textMuted }}>{props.message.modelID}</span>
                 <Show when={duration()}>
                   <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
+                </Show>
+                <Show when={props.message.error?.name === "MessageAbortedError"}>
+                  <span style={{ fg: theme.textMuted }}> · interrupted</span>
                 </Show>
                 <Show when={props.message.tokens.reasoning > 0}>
                   <span style={{ fg: theme.textMuted }}>
@@ -1758,11 +1780,11 @@ function WebFetch(props: ToolProps<typeof WebFetchTool>) {
     <box>
       <InlineTool
         tool="webfetch"
-        pending={`Fetch ${(props.input as any).url ?? "…"}`}
+        pending={(props.input as any).url ?? "…"}
         complete={(props.input as any).url}
         part={props.part}
       >
-        Fetch {(props.input as any).url}
+        {(props.input as any).url}
       </InlineTool>
       <OutputPreview output={props.output} />
     </box>

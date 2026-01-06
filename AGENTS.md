@@ -2,3 +2,4 @@
 - To regenerate the javascript SDK, run ./packages/sdk/js/script/build.ts
 - ALWAYS USE PARALLEL TOOLS WHEN APPLICABLE.
 - the default branch in this repo is `dev`
+- NEVER commit or push without explicit user approval - this repo auto-deploys to users
