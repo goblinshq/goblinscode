@@ -1991,7 +1991,7 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
       >
         {count()} todos
       </InlineTool>
-      <Show when={complete() && props.input.todos?.length}>
+      <Show when={props.input.todos?.length}>
         <ToolContainer>
           <box paddingTop={1} paddingBottom={1}>
             <For each={props.input.todos ?? []}>
