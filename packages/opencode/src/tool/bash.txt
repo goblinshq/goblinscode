@@ -47,6 +47,16 @@ Usage notes:
     cd /foo/bar && pytest tests
     </bad-example>
 
+# Long-running commands
+
+For commands that may take a long time (e.g., builds, tests, servers, watchers):
+  - Run them in the background with `&` and capture the PID: `<command> & echo "PID: $!"`
+  - Check if a process is still running: `ps -p <pid>`
+  - View output from a background process: `cat /proc/<pid>/fd/1` (Linux) or use log files
+  - Kill a background process if needed: `kill <pid>`
+  - For servers or watch mode commands, always run in background so you can continue working
+  - Example: `npm run dev > /tmp/dev.log 2>&1 & echo "PID: $!"`
+
 # Committing changes with git
 
 Only create commits when requested by the user. If unclear, ask first. When the user asks you to create a new git commit, follow these steps carefully:
