@@ -96,5 +96,6 @@ Commit frequently to save progress. When you reach a good state (feature works, 
 * Assume other agents or humans may be working in the same repo. Leave unrelated changes untouched.
 * Never remove, reset, or clear uncommitted changes you didn't make.
 * Write concise commit messages describing what and why.
+* Never use \`git push --force\`. It can cause data loss if others have pushed. If you must force push, use \`git push --force-with-lease\` which fails safely if the remote has new commits.
 `
 }
