@@ -1507,8 +1507,9 @@ function ShimmerBadge(props: { badge: string; color?: RGBA }) {
   const cycleLength = badgeText.length + shimmerWidth * 2 + shimmerPause
   const frames = Array.from({ length: cycleLength }, () => badgeText)
   const interval = Math.max(10, Math.floor(500 / (badgeText.length + shimmerWidth * 2)))
-  const active = props.color ?? theme.text
-  const color = createShimmer(theme.textMuted, active, shimmerWidth, shimmerPause)
+  const base = props.color ?? theme.textMuted
+  const highlight = props.color ? theme.text : theme.text
+  const color = createShimmer(base, highlight, shimmerWidth, shimmerPause)
 
   return (
     <box backgroundColor={theme.backgroundElement} height={1}>
@@ -1852,7 +1853,7 @@ function Task(props: ToolProps<typeof TaskTool>) {
           <ShimmerBadge badge={badgeText()} color={typeColor()} />
         </Show>
         <box width={1} />
-        <text fg={complete() ? theme.textMuted : theme.text}>
+        <text fg={theme.text}>
           {name()}
           <Show when={count() > 0}>
             <span style={{ fg: theme.textMuted }}> {count()}</span>
