@@ -34,9 +34,11 @@ function SubagentBadges(props: { sessionID: string; parentID: string }) {
   const { navigate } = useRoute()
 
   const siblings = createMemo(() => {
-    return sync.data.session
+    const all = sync.data.session
       .filter((x) => x.parentID === props.parentID)
       .toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    const offset = Math.max(0, all.length - 10)
+    return all.slice(-10).map((s, i) => ({ ...s, index: offset + i + 1 }))
   })
 
   const isWorking = (sessionID: string) => {
@@ -49,7 +51,7 @@ function SubagentBadges(props: { sessionID: string; parentID: string }) {
   return (
     <box flexDirection="row" gap={1}>
       <For each={siblings()}>
-        {(session, index) => {
+        {(session) => {
           const active = createMemo(() => session.id === props.sessionID)
           const working = createMemo(() => isWorking(session.id))
           return (
@@ -60,7 +62,7 @@ function SubagentBadges(props: { sessionID: string; parentID: string }) {
                 onMouseDown={() => navigate({ type: "session", sessionID: session.id })}
               >
                 {" "}
-                {index() + 1}{" "}
+                {session.index}{" "}
               </text>
             </box>
           )
