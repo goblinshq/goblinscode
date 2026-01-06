@@ -1684,13 +1684,14 @@ function Write(props: ToolProps<typeof WriteTool>) {
   })
 
   const complete = createMemo(() => props.metadata.diagnostics !== undefined)
+  const hasContent = createMemo(() => code().length > 0)
 
   return (
     <>
       <InlineTool tool="write" pending={pending()} complete={complete()} part={props.part}>
         {normalizePath(props.input.filePath!)}
       </InlineTool>
-      <Show when={complete()}>
+      <Show when={hasContent()}>
         <box paddingLeft={3}>
           <line_number fg={theme.textMuted} minWidth={3} paddingRight={1}>
             <code
@@ -1907,6 +1908,17 @@ function Edit(props: ToolProps<typeof EditTool>) {
   })
 
   const complete = createMemo(() => props.metadata.diff !== undefined)
+  const isStreaming = createMemo(() => !complete() && props.input.newString)
+
+  // Generate a simple inline diff from oldString → newString while streaming
+  const streamingDiff = createMemo(() => {
+    if (!isStreaming()) return ""
+    const old = props.input.oldString ?? ""
+    const replacement = props.input.newString ?? ""
+    const oldLines = old.split("\n").map((line) => `-${line}`)
+    const newLines = replacement.split("\n").map((line) => `+${line}`)
+    return [...oldLines, ...newLines].join("\n")
+  })
 
   return (
     <>
@@ -1918,6 +1930,29 @@ function Edit(props: ToolProps<typeof EditTool>) {
       >
         {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
       </InlineTool>
+      <Show when={isStreaming()}>
+        <box paddingLeft={3}>
+          <diff
+            diff={streamingDiff()}
+            view="unified"
+            filetype={ft()}
+            syntaxStyle={syntax()}
+            showLineNumbers={false}
+            width="100%"
+            wrapMode={ctx.diffWrapMode()}
+            fg={theme.text}
+            addedBg={theme.diffAddedBg}
+            removedBg={theme.diffRemovedBg}
+            contextBg={theme.diffContextBg}
+            addedSignColor={theme.diffHighlightAdded}
+            removedSignColor={theme.diffHighlightRemoved}
+            lineNumberFg={theme.diffLineNumber}
+            lineNumberBg={theme.diffContextBg}
+            addedLineNumberBg={theme.diffAddedLineNumberBg}
+            removedLineNumberBg={theme.diffRemovedLineNumberBg}
+          />
+        </box>
+      </Show>
       <Show when={complete()}>
         <box paddingLeft={3}>
           <diff
