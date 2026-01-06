@@ -39,33 +39,26 @@ function SubagentBadges(props: { sessionID: string; parentID: string }) {
       .toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
   })
 
-  const getStatus = (sessionID: string) => {
+  const isWorking = (sessionID: string) => {
     const msgs = sync.data.message[sessionID] ?? []
     const last = msgs.findLast((x) => x.role === "assistant")
-    if (!last) return "pending"
-    if (last.error) return "error"
-    if (!last.time.completed) return "running"
-    return "completed"
-  }
-
-  const getColor = (status: string, isCurrent: boolean) => {
-    if (isCurrent) return theme.accent
-    if (status === "error") return theme.error
-    if (status === "running") return theme.warning
-    if (status === "completed") return theme.textMuted
-    return theme.backgroundElement
+    if (!last) return true
+    return !last.time.completed
   }
 
   return (
     <box flexDirection="row" gap={1}>
       <For each={siblings()}>
         {(session, index) => {
-          const status = createMemo(() => getStatus(session.id))
-          const isCurrent = session.id === props.sessionID
-          const color = createMemo(() => getColor(status(), isCurrent))
+          const active = session.id === props.sessionID
+          const working = createMemo(() => isWorking(session.id))
           return (
-            <box onMouseUp={() => navigate({ type: "session", sessionID: session.id })}>
-              <text bg={color()} fg={isCurrent ? theme.background : theme.text}>
+            <box
+              onMouseUp={() => navigate({ type: "session", sessionID: session.id })}
+              border={["bottom"]}
+              borderColor={working() ? theme.warning : theme.textMuted}
+            >
+              <text bg={active ? theme.accent : theme.backgroundElement} fg={active ? theme.background : theme.text}>
                 {" "}
                 {index() + 1}{" "}
               </text>
