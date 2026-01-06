@@ -1908,11 +1908,11 @@ function Edit(props: ToolProps<typeof EditTool>) {
   })
 
   const complete = createMemo(() => props.metadata.diff !== undefined)
-  const isStreaming = createMemo(() => !complete() && props.input.newString)
+  const hasInputs = createMemo(() => props.input.oldString || props.input.newString)
 
   // Generate a simple inline diff from oldString → newString while streaming
   const streamingDiff = createMemo(() => {
-    if (!isStreaming()) return ""
+    if (complete() || !hasInputs()) return ""
     const old = props.input.oldString ?? ""
     const replacement = props.input.newString ?? ""
     const oldLines = old.split("\n").map((line) => `-${line}`)
@@ -1930,7 +1930,7 @@ function Edit(props: ToolProps<typeof EditTool>) {
       >
         {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
       </InlineTool>
-      <Show when={isStreaming()}>
+      <Show when={!complete() && hasInputs()}>
         <box paddingLeft={3}>
           <diff
             diff={streamingDiff()}
