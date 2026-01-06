@@ -27,7 +27,7 @@ export const TaskTool = Tool.define("task", async () => {
       name: z
         .string()
         .describe(
-          "A unique, playful name for this subagent that describes its task (e.g. 'auth flowz inspector', 'navbar fixer upper', 'database schema scout'). Reuse the same name to continue a previous subagent's work.",
+          "A unique, playful nerdy name describing what this subagent will do (e.g. 'the great auth kerfuffle investigator', 'navbar null pointer wrangler', 'ye olde database schema cartographer', 'the mighty regex redemption arc'). Be whimsical and specific about the goal. Reuse the same name to continue a previous subagent's work.",
         )
         .optional(),
       command: z.string().describe("The command that triggered this task").optional(),
