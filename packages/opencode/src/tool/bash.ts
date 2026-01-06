@@ -16,6 +16,11 @@ import { Shell } from "@/shell/shell"
 
 import { BashArity } from "@/permission/arity"
 
+const pty = lazy(async () => {
+  const { spawn } = await import("bun-pty")
+  return spawn
+})
+
 const MAX_OUTPUT_LENGTH = Flag.OPENCODE_EXPERIMENTAL_BASH_MAX_OUTPUT_LENGTH || 30_000
 const DEFAULT_TIMEOUT = Flag.OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS || 2 * 60 * 1000
 
@@ -146,17 +151,8 @@ export const BashTool = Tool.define("bash", async () => {
         })
       }
 
-      const proc = spawn(params.command, {
-        shell,
-        cwd,
-        env: {
-          ...process.env,
-        },
-        stdio: ["ignore", "pipe", "pipe"],
-        detached: process.platform !== "win32",
-      })
-
       let output = ""
+      let exitCode = 0
 
       // Initialize metadata with empty output
       ctx.metadata({
@@ -165,9 +161,9 @@ export const BashTool = Tool.define("bash", async () => {
         },
       })
 
-      const append = (chunk: Buffer) => {
+      const append = (chunk: string) => {
         if (output.length <= MAX_OUTPUT_LENGTH) {
-          output += chunk.toString()
+          output += chunk
           ctx.metadata({
             metadata: {
               output,
@@ -176,48 +172,55 @@ export const BashTool = Tool.define("bash", async () => {
         }
       }
 
-      proc.stdout?.on("data", append)
-      proc.stderr?.on("data", append)
-
       let timedOut = false
       let aborted = false
-      let exited = false
 
-      const kill = () => Shell.killTree(proc, { exited: () => exited })
+      // Use PTY for better compatibility with interactive commands
+      const ptySpawn = await pty()
+      const proc = ptySpawn(shell, ["-c", params.command], {
+        name: "xterm-256color",
+        cwd,
+        env: {
+          ...process.env,
+          TERM: "xterm-256color",
+        },
+      })
+
+      proc.onData(append)
+
+      const kill = () => {
+        try {
+          proc.kill()
+        } catch {}
+      }
 
       if (ctx.abort.aborted) {
         aborted = true
-        await kill()
+        kill()
       }
 
       const abortHandler = () => {
         aborted = true
-        void kill()
+        kill()
       }
 
       ctx.abort.addEventListener("abort", abortHandler, { once: true })
 
       const timeoutTimer = setTimeout(() => {
         timedOut = true
-        void kill()
+        kill()
       }, timeout + 100)
 
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((resolve) => {
         const cleanup = () => {
           clearTimeout(timeoutTimer)
           ctx.abort.removeEventListener("abort", abortHandler)
         }
 
-        proc.once("exit", () => {
-          exited = true
+        proc.onExit(({ exitCode: code }) => {
+          exitCode = code
           cleanup()
           resolve()
-        })
-
-        proc.once("error", (error) => {
-          exited = true
-          cleanup()
-          reject(error)
         })
       })
 
@@ -245,7 +248,7 @@ export const BashTool = Tool.define("bash", async () => {
         title: params.command,
         metadata: {
           output,
-          exit: proc.exitCode,
+          exit: exitCode,
         },
         output,
       }
