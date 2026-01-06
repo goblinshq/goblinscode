@@ -53,14 +53,11 @@ function SubagentBadges(props: { sessionID: string; parentID: string }) {
           const active = createMemo(() => session.id === props.sessionID)
           const working = createMemo(() => isWorking(session.id))
           return (
-            <box
-              onMouseUp={() => navigate({ type: "session", sessionID: session.id })}
-              border={["bottom"]}
-              borderColor={working() ? theme.warning : theme.textMuted}
-            >
+            <box border={["bottom"]} borderColor={working() ? theme.warning : theme.textMuted}>
               <text
                 bg={active() ? theme.accent : theme.backgroundElement}
                 fg={active() ? theme.background : theme.text}
+                onMouseDown={() => navigate({ type: "session", sessionID: session.id })}
               >
                 {" "}
                 {index() + 1}{" "}
