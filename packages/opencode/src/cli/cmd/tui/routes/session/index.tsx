@@ -1525,12 +1525,12 @@ function ShimmerText(props: { badge: string; text: string }) {
   const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth(), shimmerPause))
 
   return (
-    <text>
-      <span style={{ bg: theme.backgroundElement }}>
+    <box flexDirection="row">
+      <box backgroundColor={theme.backgroundElement}>
         <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
-      </span>
-      <span style={{ fg: theme.textMuted }}> {contentText()}</span>
-    </text>
+      </box>
+      <text fg={theme.textMuted}> {contentText()}</text>
+    </box>
   )
 }
 
