@@ -1814,19 +1814,26 @@ function Task(props: ToolProps<typeof TaskTool>) {
   const complete = createMemo(() => props.part.state.status === "completed" || props.part.state.status === "error")
   const current = createMemo(() => props.metadata.summary?.findLast((x) => x.state.status !== "pending"))
 
+  const count = createMemo(() => props.metadata.summary?.length ?? 0)
   const preview = createMemo(() => {
-    if (!props.metadata.summary?.length) {
+    if (!current()) {
       if (isRunning()) return "Starting…"
       return undefined
     }
-    const count = `${props.metadata.summary.length} tool calls`
-    if (!current()) return count
     const status = current()!.state.status === "completed" ? current()!.state.title : ""
-    return `${count} · ${Locale.titlecase(current()!.tool)} ${status}`
+    return `${Locale.titlecase(current()!.tool)} ${status}`
   })
 
-  const name = createMemo(() => props.input.name ?? props.input.description ?? "…")
-  const type = createMemo(() => Locale.titlecase(props.input.subagent_type ?? "task"))
+  const name = createMemo(() => Locale.titlecase(props.input.name ?? props.input.description ?? "…"))
+  const type = createMemo(() => props.input.subagent_type)
+  const typeColor = createMemo(() => {
+    const colors: Record<string, typeof theme.accent> = {
+      explore: theme.accent,
+      general: theme.secondary,
+      docs: theme.success,
+    }
+    return colors[props.input.subagent_type ?? ""] ?? theme.secondary
+  })
 
   return (
     <box marginTop={1} paddingLeft={3}>
@@ -1841,12 +1848,18 @@ function Task(props: ToolProps<typeof TaskTool>) {
         >
           <ShimmerBadge badge="Task" />
         </Show>
-        <box width={1} />
-        <text height={1}>
-          <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {type()} </span>
-        </text>
+        <Show when={type()}>
+          <box width={1} />
+          <text height={1}>
+            <span style={{ bg: typeColor(), fg: theme.background }}> {Locale.titlecase(type()!)} </span>
+          </text>
+        </Show>
         <box width={1} />
         <text fg={complete() ? theme.textMuted : theme.text}>{name()}</text>
+        <Show when={count() > 0}>
+          <box width={1} />
+          <text fg={theme.textMuted}>{count()}</text>
+        </Show>
       </box>
       <Show when={preview()}>
         <ToolContainer
