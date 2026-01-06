@@ -1529,9 +1529,8 @@ function ShimmerText(props: { badge: string; text: string }) {
       <box backgroundColor={theme.backgroundElement} height={1}>
         <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
       </box>
-      <text fg={theme.textMuted} paddingLeft={1}>
-        {contentText()}
-      </text>
+      <box width={1} />
+      <text fg={theme.textMuted}>{contentText()}</text>
     </box>
   )
 }
@@ -1551,7 +1550,8 @@ function InlineToolContent(props: {
       <text height={1}>
         <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {badge} </span>
       </text>
-      <text fg={props.fg} paddingLeft={1} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
+      <box width={1} />
+      <text fg={props.fg} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
         <Show fallback={props.pending} when={props.complete}>
           {props.children}
         </Show>
