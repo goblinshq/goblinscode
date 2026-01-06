@@ -1665,7 +1665,7 @@ function Bash(props: ToolProps<typeof BashTool>) {
       <InlineTool tool="bash" pending={props.input.command ?? "…"} complete={hasCommand()} part={props.part}>
         {props.input.command}
       </InlineTool>
-      <Show when={complete()}>
+      <Show when={output()}>
         <OutputPreview output={output()} full />
       </Show>
     </box>
