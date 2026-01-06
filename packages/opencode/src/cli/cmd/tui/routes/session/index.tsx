@@ -1891,8 +1891,8 @@ function Task(props: ToolProps<typeof TaskTool>) {
               <text>
                 <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {previewBadge()} </span>
               </text>
-              <box width={1} />
             </Show>
+            <box width={1} />
             <text fg={theme.textMuted}>{previewText() || "Starting…"}</text>
           </box>
         </box>
