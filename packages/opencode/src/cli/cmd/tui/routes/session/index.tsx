@@ -1499,21 +1499,30 @@ function createShimmer(baseColor: RGBA, highlightColor: RGBA, width: number = 3,
   }
 }
 
-function ShimmerBadge(props: { badge: string; color?: RGBA }) {
+function lightenColor(color: RGBA, amount: number): RGBA {
+  return RGBA.fromValues(
+    Math.min(1, color.r + (1 - color.r) * amount),
+    Math.min(1, color.g + (1 - color.g) * amount),
+    Math.min(1, color.b + (1 - color.b) * amount),
+    color.a,
+  )
+}
+
+function ShimmerBadge(props: { badge: () => string; color?: RGBA }) {
   const { theme } = useTheme()
   const shimmerPause = 8
-  const badgeText = ` ${props.badge} `
-  const shimmerWidth = Math.max(2, Math.floor(badgeText.length / 2))
-  const cycleLength = badgeText.length + shimmerWidth * 2 + shimmerPause
-  const frames = Array.from({ length: cycleLength }, () => badgeText)
-  const interval = Math.max(10, Math.floor(500 / (badgeText.length + shimmerWidth * 2)))
+  const badgeText = createMemo(() => ` ${props.badge()} `)
+  const shimmerWidth = createMemo(() => Math.max(2, Math.floor(badgeText().length / 2)))
+  const cycleLength = createMemo(() => badgeText().length + shimmerWidth() * 2 + shimmerPause)
+  const frames = createMemo(() => Array.from({ length: cycleLength() }, () => badgeText()))
+  const interval = createMemo(() => Math.max(10, Math.floor(500 / (badgeText().length + shimmerWidth() * 2))))
   const base = props.color ?? theme.textMuted
-  const highlight = props.color ? theme.text : theme.text
-  const color = createShimmer(base, highlight, shimmerWidth, shimmerPause)
+  const highlight = props.color ? lightenColor(props.color, 0.4) : theme.text
+  const color = createShimmer(base, highlight, shimmerWidth(), shimmerPause)
 
   return (
     <box backgroundColor={theme.backgroundElement} height={1}>
-      <spinner frames={frames} interval={interval} color={color} />
+      <spinner frames={frames()} interval={interval()} color={color} />
     </box>
   )
 }
@@ -1561,7 +1570,7 @@ function InlineTool(props: { tool: string; complete: any; pending: string; child
             </text>
           }
         >
-          <ShimmerBadge badge={badge} />
+          <ShimmerBadge badge={() => badge} />
         </Show>
         <box width={1} />
         <text fg={fg()} attributes={denied() ? TextAttributes.STRIKETHROUGH : undefined}>
@@ -1850,7 +1859,7 @@ function Task(props: ToolProps<typeof TaskTool>) {
             </text>
           }
         >
-          <ShimmerBadge badge={badgeText()} color={typeColor()} />
+          <ShimmerBadge badge={badgeText} color={typeColor()} />
         </Show>
         <box width={1} />
         <text fg={theme.text}>
