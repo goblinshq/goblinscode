@@ -1830,7 +1830,7 @@ function Task(props: ToolProps<typeof TaskTool>) {
       <InlineTool tool="task" pending={pending()} complete={complete()} part={props.part}>
         {Locale.titlecase(props.input.subagent_type ?? "unknown")} "{props.input.description}"
       </InlineTool>
-      <Show when={complete() && summary()}>
+      <Show when={summary()}>
         <ToolContainer
           onClick={
             props.metadata.sessionId
@@ -1842,10 +1842,12 @@ function Task(props: ToolProps<typeof TaskTool>) {
             <text paddingLeft={3} fg={theme.textMuted} attributes={TextAttributes.DIM}>
               {summary()}
             </text>
-            <text paddingLeft={3} fg={theme.text}>
-              {keybind.print("session_child_cycle")}
-              <span style={{ fg: theme.textMuted }}> view subagents</span>
-            </text>
+            <Show when={complete()}>
+              <text paddingLeft={3} fg={theme.text}>
+                {keybind.print("session_child_cycle")}
+                <span style={{ fg: theme.textMuted }}> view subagents</span>
+              </text>
+            </Show>
           </box>
         </ToolContainer>
       </Show>
