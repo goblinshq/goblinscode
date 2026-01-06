@@ -1855,11 +1855,12 @@ function Task(props: ToolProps<typeof TaskTool>) {
           </text>
         </Show>
         <box width={1} />
-        <text fg={complete() ? theme.textMuted : theme.text}>{name()}</text>
-        <Show when={count() > 0}>
-          <box width={1} />
-          <text fg={theme.textMuted}>{count()}</text>
-        </Show>
+        <text fg={complete() ? theme.textMuted : theme.text}>
+          {name()}
+          <Show when={count() > 0}>
+            <span style={{ fg: theme.textMuted }}> {count()}</span>
+          </Show>
+        </text>
       </box>
       <Show when={preview()}>
         <ToolContainer
