@@ -1525,13 +1525,11 @@ function ShimmerText(props: { badge: string; text: string }) {
   const shimmerColor = createMemo(() => createShimmer(theme.textMuted, theme.text, shimmerWidth(), shimmerPause))
 
   return (
-    <box flexDirection="row" alignItems="flex-start">
-      <box backgroundColor={theme.backgroundElement} flexShrink={0}>
+    <box flexDirection="column">
+      <box backgroundColor={theme.backgroundElement} flexShrink={0} width={badgeText().length}>
         <spinner frames={shimmerFrames()} interval={shimmerInterval()} color={shimmerColor()} />
       </box>
-      <text fg={theme.textMuted} paddingLeft={1}>
-        {contentText()}
-      </text>
+      <text fg={theme.textMuted}>{contentText()}</text>
     </box>
   )
 }
@@ -1547,11 +1545,11 @@ function InlineToolContent(props: {
   const { theme } = useTheme()
   const badge = TOOL_BADGE[props.tool] ?? props.tool
   return (
-    <box flexDirection="row" alignItems="flex-start">
-      <text flexShrink={0}>
+    <box flexDirection="column">
+      <text>
         <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {badge} </span>
       </text>
-      <text fg={props.fg} paddingLeft={1} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
+      <text fg={props.fg} attributes={props.denied ? TextAttributes.STRIKETHROUGH : undefined}>
         <Show fallback={props.pending} when={props.complete}>
           {props.children}
         </Show>
