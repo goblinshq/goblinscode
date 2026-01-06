@@ -183,6 +183,13 @@ export const BashTool = Tool.define("bash", async () => {
         env: {
           ...process.env,
           TERM: "xterm-256color",
+          // Discourage interactive prompts while keeping TTY output
+          CI: "true",
+          DEBIAN_FRONTEND: "noninteractive",
+          GIT_TERMINAL_PROMPT: "0",
+          npm_config_yes: "true",
+          PAGER: "cat",
+          GIT_PAGER: "cat",
         },
       })
 
@@ -255,4 +262,3 @@ export const BashTool = Tool.define("bash", async () => {
     },
   }
 })
-
